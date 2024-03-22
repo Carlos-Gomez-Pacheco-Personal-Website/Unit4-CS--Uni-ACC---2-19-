@@ -322,6 +322,31 @@ const authMiddleware = (...methods) => {
   };
 };
 
+// Fetches API key information
+const fetchUsers = async () => {
+  const SQL = `
+    SELECT id, username FROM users;
+  `;
+  const response = await client.query(SQL);
+  return response.rows;
+};
+
+const fetchProducts = async () => {
+  const SQL = `
+    SELECT * FROM products;
+  `;
+  const response = await client.query(SQL);
+  return response.rows;
+};
+
+const fetchFavorites = async (user_id) => {
+  const SQL = `
+    SELECT * FROM favorites where user_id = $1
+  `;
+  const response = await client.query(SQL, [user_id]);
+  return response.rows;
+};
+
 module.exports = {
   client,
   createTables,
@@ -343,4 +368,7 @@ module.exports = {
   authenticate,
   authMiddleware,
   findUserByToken,
+  fetchUsers,
+  fetchProducts,
+  fetchFavorites,
 };

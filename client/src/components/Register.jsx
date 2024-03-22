@@ -20,7 +20,7 @@ const Register = () => {
 
       if (response.ok) {
         alert("Registration successful");
-        navigate("/some-path");
+        navigate("/login"); // Navigate to login page after successful registration
       } else {
         alert("Registration failed");
       }

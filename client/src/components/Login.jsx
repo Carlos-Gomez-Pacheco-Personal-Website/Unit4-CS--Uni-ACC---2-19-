@@ -3,7 +3,8 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Login = (setCurrentUser) => {
+const Login = ({ setCurrentUser }) => {
+  // Fixed: Destructure setCurrentUser from props
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Login = (setCurrentUser) => {
       if (response.ok) {
         const user = await response.json();
         setCurrentUser(user);
-        navigate("/some-path");
+        navigate("/");
       } else {
         alert("Invalid credentials");
       }
@@ -56,7 +57,7 @@ const Login = (setCurrentUser) => {
 };
 
 Login.propTypes = {
-  setCurrentUser: PropTypes.func,
+  setCurrentUser: PropTypes.func.isRequired, // setCurrentUser is required
 };
 
 export default Login;

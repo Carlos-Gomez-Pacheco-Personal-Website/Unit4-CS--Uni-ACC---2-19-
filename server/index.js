@@ -19,6 +19,9 @@ const {
   authenticate,
   authMiddleware,
   findUserByToken,
+  fetchUsers,
+  fetchProducts,
+  fetchFavorites,
 } = require("./db");
 
 const express = require("express");
@@ -109,11 +112,9 @@ app.get("/api/auth/me", isLoggedIn, async (req, res, next) => {
 // User Routes
 app.get("/api/users", async (req, res, next) => {
   try {
-    const SQL = `SELECT * FROM users`;
-    const response = await client.query(SQL);
-    res.send(response.rows);
-  } catch (error) {
-    next(error);
+    res.send(await fetchUsers());
+  } catch (ex) {
+    next(ex);
   }
 });
 app.post("/api/users", async (req, res, next) => {
@@ -146,13 +147,21 @@ app.delete("/api/users/:id", isLoggedIn, async (req, res, next) => {
 // Product Routes
 app.get("/api/products", async (req, res, next) => {
   try {
-    const SQL = `SELECT * FROM products`;
-    const response = await client.query(SQL);
-    res.send(response.rows);
-  } catch (error) {
-    next(error);
+    res.send(await fetchProducts());
+  } catch (ex) {
+    next(ex);
   }
 });
+// app.get("/api/products", async (req, res, next) => {
+//   try {
+//     const SQL = `SELECT * FROM products`;
+//     const response = await client.query(SQL);
+//     res.send(response.rows);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
 app.post("/api/products", isAdmin, async (req, res, next) => {
   try {
     const product = await createProduct(req.body);
@@ -256,15 +265,22 @@ app.delete("/api/cart-items/:id", isLoggedIn, async (req, res, next) => {
 });
 
 // Favorite Routes
-app.get("/api/favorites", isLoggedIn, async (req, res, next) => {
+app.get("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
   try {
-    const SQL = `SELECT * FROM favorites`;
-    const response = await client.query(SQL);
-    res.send(response.rows);
-  } catch (error) {
-    next(error);
+    res.send(await fetchFavorites(req.params.id));
+  } catch (ex) {
+    next(ex);
   }
 });
+// app.get("/api/favorites", isLoggedIn, async (req, res, next) => {
+//   try {
+//     const SQL = `SELECT * FROM favorites`;
+//     const response = await client.query(SQL);
+//     res.send(response.rows);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 app.post("/api/favorites", isLoggedIn, async (req, res, next) => {
   try {
     const favorite = await createFavorite(req.body);
