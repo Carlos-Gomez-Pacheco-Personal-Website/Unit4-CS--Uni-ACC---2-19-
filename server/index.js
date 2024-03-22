@@ -240,7 +240,7 @@ app.delete("/api/favorites/:id", isLoggedIn, async (req, res, next) => {
   }
 });
 
-app.put("/favorites/:id", isLoggedIn, async (req, res, next) => {
+app.put("/api/favorites/:id", isLoggedIn, async (req, res, next) => {
   try {
     const updatedFavorite = await updateFavorite(req.params.id, req.body);
     res.status(200).json(updatedFavorite);
@@ -276,27 +276,8 @@ const init = async () => {
     await createTables();
     console.log("tables created");
 
-    // Create sample data using Promise.all
-    const [
-      adminUser,
-      regularUser,
-      electronicsCategory,
-      clothingCategory,
-      laptopProduct,
-      tshirtProduct,
-      cartItem1,
-      favorite1,
-    ] = await Promise.all([
-      createUser({
-        username: "admin",
-        password: "adminpassword",
-        isAdmin: true,
-      }),
-      createUser({
-        username: "user",
-        password: "userpassword",
-        isAdmin: false,
-      }),
+    // First, create categories to ensure we have the category IDs
+    const [electronicsCategory, clothingCategory] = await Promise.all([
       createCategory({
         name: "Electronics",
         type: "Electronics",
@@ -307,11 +288,16 @@ const init = async () => {
         type: "Apparel",
         description: "Fashionable apparel and accessories",
       }),
+    ]);
+
+    // Now that we have category IDs, we can create products
+    const [laptopProduct, tshirtProduct] = await Promise.all([
       createProduct({
         name: "Laptop",
         date: new Date(),
         description: "High-performance laptop",
-        image: "laptop_image_url",
+        image:
+          "https://www.bhphotovideo.com/images/images2500x2500/asus_g513qr_es96_15_6_republic_of_gamers_1616909.jpg",
         cost: 999.99,
         category_id: electronicsCategory.id,
       }),
@@ -319,9 +305,24 @@ const init = async () => {
         name: "T-Shirt",
         date: new Date(),
         description: "Cotton unisex t-shirt",
-        image: "tshirt_image_url",
+        image:
+          "https://th.bing.com/th/id/OIP.DSjZPk9uy01_f2ox4Q5QPgHaHa?rs=1&pid=ImgDetMain",
         cost: 19.99,
         category_id: clothingCategory.id,
+      }),
+    ]);
+
+    // Finally, create users, cart items, and favorites
+    const [adminUser, regularUser, cartItem1, favorite1] = await Promise.all([
+      createUser({
+        username: "admin",
+        password: "adminpassword",
+        isAdmin: true,
+      }),
+      createUser({
+        username: "user",
+        password: "userpassword",
+        isAdmin: false,
       }),
       createCartItem({
         user_id: regularUser.id,
