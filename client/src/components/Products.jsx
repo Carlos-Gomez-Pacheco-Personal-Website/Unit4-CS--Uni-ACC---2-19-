@@ -7,17 +7,9 @@ const Products = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      try {
-        const response = await fetch("/api/products");
-        if (response.ok) {
-          const results = await response.json();
-          setProducts(results);
-        } else {
-          console.error("Failed to fetch products:", response.status);
-        }
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      }
+      const response = await fetch("/api/products");
+      const productsData = await response.json();
+      setProducts(productsData);
     };
 
     fetchProducts();

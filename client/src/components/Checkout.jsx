@@ -1,27 +1,42 @@
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import { fetchCart, updateCart } from "./db";
 
 const Checkout = ({ currentUser }) => {
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
     if (currentUser) {
-      (async () => {
-        const cartData = await fetchCart(currentUser.id);
+      const fetchData = async () => {
+        const response = await fetch(`/api/users/${currentUser.id}/cart`);
+        const cartData = await response.json();
         setCartItems(cartData);
-      })();
+      };
+
+      fetchData();
     }
   }, [currentUser]);
 
   const handleUpdateQuantity = async (productId, newQuantity) => {
-    await updateCart(currentUser.id, productId, newQuantity);
-
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
-      )
+    const response = await fetch(
+      `/api/users/${currentUser.id}/cart/${productId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+      }
     );
+
+    if (response.ok) {
+      setCartItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === productId ? { ...item, quantity: newQuantity } : item
+        )
+      );
+    } else {
+      alert("Failed to update quantity");
+    }
   };
 
   const handleCheckout = async () => {

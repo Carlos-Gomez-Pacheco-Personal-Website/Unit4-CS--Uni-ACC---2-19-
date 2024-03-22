@@ -1,16 +1,17 @@
 // Navigation.jsx
 import { Link } from "react-router-dom";
+import "./Navigation.css"; // Import the CSS file
 
 const Navigation = () => {
   return (
-    <nav>
+    <nav className="navbar">
       <ul>
         <li>
           <Link to="/">Home</Link>
         </li>
-        <li>
+        {/* <li>
           <Link to="/products">Products</Link>
-        </li>
+        </li> */}
         <li>
           <Link to="/login">Login</Link>
         </li>

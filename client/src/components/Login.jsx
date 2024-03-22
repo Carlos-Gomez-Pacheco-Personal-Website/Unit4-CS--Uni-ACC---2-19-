@@ -1,12 +1,12 @@
 // Login.jsx
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const Login = ({ setCurrentUser }) => {
+const Login = (setCurrentUser) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +22,7 @@ const Login = ({ setCurrentUser }) => {
       if (response.ok) {
         const user = await response.json();
         setCurrentUser(user);
-        history.push("/");
+        navigate("/some-path");
       } else {
         alert("Invalid credentials");
       }
