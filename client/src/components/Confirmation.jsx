@@ -1,26 +1,25 @@
-import React from "react";
+import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 
-const Confirmation = () => {
+const Confirmation = ({ purchasedItems }) => {
   return (
     <div>
       <h1>Confirmation</h1>
       <p>Thank you for your purchase!</p>
+      <ul>
+        {purchasedItems.map((item) => (
+          <li key={item.id}>{item.name}</li>
+        ))}
+      </ul>
+      <Link to="/">Return to Main List</Link>
     </div>
   );
 };
 
+Confirmation.propTypes = {
+  purchasedItems: PropTypes.shape({
+    map: PropTypes.func,
+  }),
+};
+
 export default Confirmation;
-
-// import React from 'react';
-
-// const Confirmation = () => {
-//   // Display the confirmation details after an order is placed
-//   return (
-//     <div>
-//       <h1>Order Confirmed!</h1>
-//       {/* Display order summary and confirmation details */}
-//     </div>
-//   );
-// };
-
-// export default Confirmation;

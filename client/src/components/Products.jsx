@@ -1,3 +1,4 @@
+// Products.jsx
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
@@ -5,11 +6,21 @@ const Products = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    (async () => {
-      const response = await fetch("/api/products");
-      const results = await response.json();
-      setProducts(results);
-    })();
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("/api/products");
+        if (response.ok) {
+          const results = await response.json();
+          setProducts(results);
+        } else {
+          console.error("Failed to fetch products:", response.status);
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   return (

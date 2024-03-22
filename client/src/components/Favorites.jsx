@@ -3,16 +3,49 @@ import { useState, useEffect } from "react";
 
 const Favorites = ({ currentUser }) => {
   const [favorites, setFavorites] = useState([]);
+  const [productId, setProductId] = useState("");
 
   useEffect(() => {
     if (currentUser) {
-      (async () => {
-        const response = await fetch(`/api/users/${currentUser.id}/favorites`);
-        const favoritesData = await response.json();
-        setFavorites(favoritesData);
-      })();
+      const fetchFavorites = async () => {
+        try {
+          const response = await fetch(
+            `/api/users/${currentUser.id}/favorites`
+          );
+          if (response.ok) {
+            const favoritesData = await response.json();
+            setFavorites(favoritesData);
+          } else {
+            console.error("Failed to fetch favorites:", response.status);
+          }
+        } catch (error) {
+          console.error("Failed to fetch favorites:", error);
+        }
+      };
+
+      fetchFavorites();
     }
   }, [currentUser]);
+
+  const handleAddToCart = async (product) => {
+    try {
+      const response = await fetch(`/api/users/${currentUser.id}/cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ product_id: product.id }),
+      });
+
+      if (response.ok) {
+        alert("Product added to cart successfully!");
+      } else {
+        alert("Failed to add product to cart");
+      }
+    } catch (error) {
+      console.error("Failed to add product to cart:", error);
+    }
+  };
 
   const handleAddToFavorites = async (product) => {
     if (currentUser) {
@@ -72,15 +105,21 @@ const Favorites = ({ currentUser }) => {
         </ul>
       )}
       <h2>Add a product to your favorites:</h2>
-      {/* Add a form or input fields to add products to favorites */}
+      <form onSubmit={handleAddToFavorites}>
+        <input
+          type="text"
+          value={productId}
+          onChange={(e) => setProductId(e.target.value)}
+          placeholder="Enter product ID"
+        />
+        <button type="submit">Add to Favorites</button>
+      </form>
     </div>
   );
 };
 
 Favorites.propTypes = {
-  currentUser: PropTypes.shape({
-    id: PropTypes.any,
-  }),
+  currentUser: PropTypes.any,
 };
 
 export default Favorites;

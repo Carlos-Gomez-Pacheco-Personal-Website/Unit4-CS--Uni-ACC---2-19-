@@ -1,3 +1,4 @@
+// Login.jsx
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
@@ -9,20 +10,25 @@ const Login = ({ setCurrentUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (response.ok) {
-      const user = await response.json();
-      setCurrentUser(user);
-      history.push("/");
-    } else {
-      alert("Invalid credentials");
+      if (response.ok) {
+        const user = await response.json();
+        setCurrentUser(user);
+        history.push("/");
+      } else {
+        alert("Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Failed to login:", error);
+      alert("Failed to login. Please try again.");
     }
   };
 

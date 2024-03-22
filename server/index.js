@@ -356,13 +356,13 @@ const init = async () => {
     // Create users
     const [adminUser, regularUser] = await Promise.all([
       createUser({
-        username: "admin",
-        password: "adminpassword",
+        username: "admincarlos",
+        password: "admin123456",
         isAdmin: true,
       }),
       createUser({
-        username: "user",
-        password: "userpassword",
+        username: "carlos",
+        password: "123456",
         isAdmin: false,
       }),
     ]);
@@ -386,50 +386,6 @@ const init = async () => {
 };
 
 init();
-
-// const {
-//   createTables,
-//   createUser,
-//   createProduct,
-//   createCategory,
-//   createCartItem,
-//   createFavorite,
-//   deleteUser,
-//   deleteProduct,
-//   deleteCategory,
-//   deleteCartItem,
-//   deleteFavorite,
-//   updateUser,
-//   updateProduct,
-//   updateCategory,
-//   updateCartItem,
-//   updateFavorite,
-//   authenticate,
-//   authMiddleware,
-//   findUserByToken,
-// } = require("./db");
-
-// const express = require("express");
-// const bodyParser = require("body-parser");
-// const db = require("./db");
-
-// const app = express();
-// app.use(bodyParser.json());
-
-// // API endpoints
-
-// // Authentication
-// app.post("/auth", async (req, res) => {
-//   const { username, password } = req.body;
-//   const result = await db.authenticate({ username, password });
-//   if (result) {
-//     res.status(200).json(result);
-//   } else {
-//     res.status(401).json({ error: "Invalid credentials" });
-//   }
-// });
-
-// // CRUD operations
 
 // // Users
 // app.post("/users", async (req, res) => {
@@ -546,39 +502,3 @@ init();
 //   const updatedFavorites = await db.fetchFavorites();
 //   res.status(200).json(updatedFavorites);
 // });
-
-// const init = async () => {
-//   const port = process.env.PORT || 3000;
-//   await client.connect();
-//   console.log("connected to database");
-
-//   await createTables();
-//   console.log("tables created");
-
-//   const [moe, lucy, ethyl, curly, foo, bar, bazz, quq, fip] = await Promise.all(
-//     [
-//       createUser({ username: "moe", password: "123456" }),
-//       createUser({ username: "lucy", password: "123457" }),
-//       createUser({ username: "ethyl", password: "123458" }),
-//       createUser({ username: "curly", password: "123459" }),
-//       createProduct({ name: "foo" }),
-//       createProduct({ name: "bar" }),
-//       createProduct({ name: "bazz" }),
-//       createProduct({ name: "quq" }),
-//       createProduct({ name: "fip" }),
-//     ]
-//   );
-
-//   console.log(await fetchUsers());
-//   console.log(await fetchProducts());
-
-//   console.log(await fetchFavorites(moe.id));
-
-//   const favorite = await createFavorite({
-//     user_id: moe.id,
-//     product_id: foo.id,
-//   });
-//   app.listen(port, () => console.log(`listening on port ${port}`));
-// };
-
-// init();

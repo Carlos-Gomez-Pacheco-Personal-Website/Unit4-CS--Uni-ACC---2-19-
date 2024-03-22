@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import { fetchCart, updateCart } from "./db";
 
@@ -24,7 +25,24 @@ const Checkout = ({ currentUser }) => {
   };
 
   const handleCheckout = async () => {
-    // Implement checkout logic
+    try {
+      const response = await fetch(`/api/users/${currentUser.id}/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(cartItems),
+      });
+
+      if (response.ok) {
+        alert("Checkout successful!");
+        setCartItems([]); // Clear the cart after a successful checkout
+      } else {
+        alert("Checkout failed");
+      }
+    } catch (error) {
+      console.error("Failed to checkout:", error);
+    }
   };
 
   return (
@@ -56,26 +74,10 @@ const Checkout = ({ currentUser }) => {
   );
 };
 
+Checkout.propTypes = {
+  currentUser: PropTypes.shape({
+    id: PropTypes.any,
+  }),
+};
+
 export default Checkout;
-
-// import React, { useState } from 'react';
-
-// const Checkout = () => {
-//   const [orderDetails, setOrderDetails] = useState({
-//     // Initialize order details state
-//   });
-
-//   const handleSubmit = async (event) => {
-//     event.preventDefault();
-//     // Process the checkout
-//   };
-
-//   return (
-//     <form onSubmit={handleSubmit}>
-//       {/* Input fields for payment and shipping details */}
-//       <button type="submit">Place Order</button>
-//     </form>
-//   );
-// };
-
-// export default Checkout;

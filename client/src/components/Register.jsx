@@ -1,3 +1,4 @@
+// Register.jsx
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
 
@@ -8,19 +9,24 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("/api/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (response.ok) {
-      alert("Registration successful");
-      history.push("/login");
-    } else {
-      alert("Registration failed");
+      if (response.ok) {
+        alert("Registration successful");
+        history.push("/login");
+      } else {
+        alert("Registration failed");
+      }
+    } catch (error) {
+      console.error("Failed to register:", error);
+      alert("Failed to register. Please try again.");
     }
   };
 

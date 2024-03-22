@@ -1,4 +1,6 @@
+import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const Cart = ({ currentUser }) => {
   const [cartItems, setCartItems] = useState([]);
@@ -15,23 +17,23 @@ const Cart = ({ currentUser }) => {
     }
   }, [currentUser]);
 
-  const handleAddToCart = async (product) => {
-    if (currentUser) {
-      const response = await fetch(`/api/users/${currentUser.id}/cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(product),
-      });
+  // const handleAddToCart = async (product) => {
+  //   if (currentUser) {
+  //     const response = await fetch(`/api/users/${currentUser.id}/cart`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(product),
+  //     });
 
-      if (response.ok) {
-        setCartItems((prevItems) => [...prevItems, product]);
-      } else {
-        alert("Failed to add to cart");
-      }
-    }
-  };
+  //     if (response.ok) {
+  //       setCartItems((prevItems) => [...prevItems, product]);
+  //     } else {
+  //       alert("Failed to add to cart");
+  //     }
+  //   }
+  // };
 
   const handleRemoveFromCart = async (product) => {
     if (currentUser) {
@@ -110,8 +112,15 @@ const Cart = ({ currentUser }) => {
       )}
       <h2>Add a product to your cart:</h2>
       {/* Add a form or input fields to add products to cart */}
+      <Link to="/checkout">Proceed to Checkout</Link>
     </div>
   );
+};
+
+Cart.propTypes = {
+  currentUser: PropTypes.shape({
+    id: PropTypes.any,
+  }),
 };
 
 export default Cart;
