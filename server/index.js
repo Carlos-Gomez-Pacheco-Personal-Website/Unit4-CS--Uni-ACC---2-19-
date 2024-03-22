@@ -107,7 +107,16 @@ app.get("/api/auth/me", isLoggedIn, async (req, res, next) => {
 ///////////////////////////////////////////////////////////////////////////////////
 
 // User Routes
-TODO: app.post("/api/users", async (req, res, next) => {
+app.get("/api/users", async (req, res, next) => {
+  try {
+    const SQL = `SELECT * FROM users`;
+    const response = await client.query(SQL);
+    res.send(response.rows);
+  } catch (error) {
+    next(error);
+  }
+});
+app.post("/api/users", async (req, res, next) => {
   try {
     const user = await createUser(req.body);
     res.status(201).send(user);
@@ -135,6 +144,15 @@ app.delete("/api/users/:id", isLoggedIn, async (req, res, next) => {
 });
 
 // Product Routes
+app.get("/api/products", async (req, res, next) => {
+  try {
+    const SQL = `SELECT * FROM products`;
+    const response = await client.query(SQL);
+    res.send(response.rows);
+  } catch (error) {
+    next(error);
+  }
+});
 app.post("/api/products", isAdmin, async (req, res, next) => {
   try {
     const product = await createProduct(req.body);
@@ -163,6 +181,15 @@ app.delete("/api/products/:id", isAdmin, async (req, res, next) => {
 });
 
 // Category Routes
+app.get("/api/categories", isAdmin, async (req, res, next) => {
+  try {
+    const SQL = `SELECT * FROM categories`;
+    const response = await client.query(SQL);
+    res.send(response.rows);
+  } catch (error) {
+    next(error);
+  }
+});
 app.post("/api/categories", isAdmin, async (req, res, next) => {
   try {
     const category = await createCategory(req.body);
@@ -191,6 +218,16 @@ app.delete("/api/categories/:id", isAdmin, async (req, res, next) => {
 });
 
 // Cart Item Routes
+app.get("/api/cart-items", isLoggedIn, async (req, res, next) => {
+  try {
+    const SQL = `SELECT * FROM cart_items`;
+    const response = await client.query(SQL);
+    res.send(response.rows);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/api/cart-items", isLoggedIn, async (req, res, next) => {
   try {
     const cartItem = await createCartItem(req.body);
@@ -219,6 +256,15 @@ app.delete("/api/cart-items/:id", isLoggedIn, async (req, res, next) => {
 });
 
 // Favorite Routes
+app.get("/api/favorites", isLoggedIn, async (req, res, next) => {
+  try {
+    const SQL = `SELECT * FROM favorites`;
+    const response = await client.query(SQL);
+    res.send(response.rows);
+  } catch (error) {
+    next(error);
+  }
+});
 app.post("/api/favorites", isLoggedIn, async (req, res, next) => {
   try {
     const favorite = await createFavorite(req.body);
@@ -266,12 +312,11 @@ app.use((err, req, res, next) => {
 
 const init = async () => {
   const port = process.env.PORT || 3000;
-
+  await client.connect();
+  console.log("connected to database");
+  await createTables();
+  console.log("tables created");
   try {
-    await client.connect();
-    console.log("connected to database");
-    await createTables();
-    console.log("tables created");
     // First, create categories to ensure we have the category IDs
     const [electronicsCategory, clothingCategory] = await Promise.all([
       createCategory({
@@ -281,7 +326,7 @@ const init = async () => {
       }),
       createCategory({
         name: "Clothing",
-        type: "Apparel",
+        type: "Clothing",
         description: "Fashionable apparel and accessories",
       }),
     ]);
@@ -308,8 +353,8 @@ const init = async () => {
       }),
     ]);
 
-    // Finally, create users, cart items, and favorites
-    const [adminUser, regularUser, cartItem1, favorite1] = await Promise.all([
+    // Create users
+    const [adminUser, regularUser] = await Promise.all([
       createUser({
         username: "admin",
         password: "adminpassword",
@@ -320,6 +365,10 @@ const init = async () => {
         password: "userpassword",
         isAdmin: false,
       }),
+    ]);
+
+    // Now that we have user IDs, we can create cart items and favorites
+    const [cartItem1, favorite1] = await Promise.all([
       createCartItem({
         user_id: regularUser.id,
         product_id: laptopProduct.id,

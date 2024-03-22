@@ -1,5 +1,5 @@
+import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import { fetchFavorites, addToFavorites, removeFromFavorites } from "./db";
 
 const Favorites = ({ currentUser }) => {
   const [favorites, setFavorites] = useState([]);
@@ -7,7 +7,8 @@ const Favorites = ({ currentUser }) => {
   useEffect(() => {
     if (currentUser) {
       (async () => {
-        const favoritesData = await fetchFavorites(currentUser.id);
+        const response = await fetch(`/api/users/${currentUser.id}/favorites`);
+        const favoritesData = await response.json();
         setFavorites(favoritesData);
       })();
     }
@@ -15,17 +16,38 @@ const Favorites = ({ currentUser }) => {
 
   const handleAddToFavorites = async (product) => {
     if (currentUser) {
-      await addToFavorites(currentUser.id, product);
-      setFavorites((prevFavorites) => [...prevFavorites, product]);
+      const response = await fetch(`/api/users/${currentUser.id}/favorites`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (response.ok) {
+        setFavorites((prevFavorites) => [...prevFavorites, product]);
+      } else {
+        alert("Failed to add to favorites");
+      }
     }
   };
 
   const handleRemoveFromFavorites = async (product) => {
     if (currentUser) {
-      await removeFromFavorites(currentUser.id, product.id);
-      setFavorites((prevFavorites) =>
-        prevFavorites.filter((item) => item.id !== product.id)
+      const response = await fetch(
+        `/api/users/${currentUser.id}/favorites/${product.id}`,
+        {
+          method: "DELETE",
+        }
       );
+
+      if (response.ok) {
+        setFavorites((prevFavorites) =>
+          prevFavorites.filter((item) => item.id !== product.id)
+        );
+      } else {
+        alert("Failed to remove from favorites");
+      }
     }
   };
 
@@ -40,7 +62,10 @@ const Favorites = ({ currentUser }) => {
             <li key={product.id}>
               {product.name}
               <button onClick={() => handleRemoveFromFavorites(product)}>
-                Remove
+                Remove from Favorites
+              </button>
+              <button onClick={() => handleAddToCart(product)}>
+                Add to Cart
               </button>
             </li>
           ))}
@@ -52,27 +77,10 @@ const Favorites = ({ currentUser }) => {
   );
 };
 
+Favorites.propTypes = {
+  currentUser: PropTypes.shape({
+    id: PropTypes.any,
+  }),
+};
+
 export default Favorites;
-
-// import React, { useState, useEffect } from 'react';
-
-// const Favorites = () => {
-//   const [favorites, setFavorites] = useState([]);
-
-//   useEffect(() => {
-//     // Fetch favorite items for the current user
-//   }, []);
-
-//   return (
-//     <div>
-//       {favorites.map((item) => (
-//         <div key={item.id}>
-//           <h3>{item.product.name}</h3>
-//           {/* Display other favorite item details */}
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
-
-// export default Favorites;

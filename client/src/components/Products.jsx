@@ -1,13 +1,13 @@
-import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import { fetchProducts } from "./db";
+import { Link } from "react-router-dom";
 
-const Products = ({ currentUser }) => {
+const Products = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
     (async () => {
-      const results = await fetchProducts();
+      const response = await fetch("/api/products");
+      const results = await response.json();
       setProducts(results);
     })();
   }, []);
@@ -15,36 +15,15 @@ const Products = ({ currentUser }) => {
   return (
     <div>
       <h1>Products</h1>
-      {/* Render products here */}
+      {products.map((product) => (
+        <div key={product.id}>
+          <h2>{product.name}</h2>
+          <p>{product.description}</p>
+          <Link to={`/products/${product.id}`}>View Details</Link>
+        </div>
+      ))}
     </div>
   );
 };
 
-Products.propTypes = {
-  currentUser: PropTypes.any,
-};
-
 export default Products;
-
-// import React, { useState, useEffect } from 'react';
-
-// const Products = () => {
-//   const [products, setProducts] = useState([]);
-
-//   useEffect(() => {
-//     // Fetch products from the API and set state
-//   }, []);
-
-//   return (
-//     <div>
-//       {products.map((product) => (
-//         <div key={product.id}>
-//           <h3>{product.name}</h3>
-//           {/* Render other product details */}
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
-
-// export default Products;

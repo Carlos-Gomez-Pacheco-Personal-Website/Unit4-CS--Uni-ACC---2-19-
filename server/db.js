@@ -10,11 +10,12 @@ const JWT = process.env.JWT || "shhh";
 // Create the tables
 const createTables = async () => {
   const SQL = `
-    DROP TABLE IF EXISTS users;
-    DROP TABLE IF EXISTS products;
-    DROP TABLE IF EXISTS categories;
-    DROP TABLE IF EXISTS cart_items;
-    DROP TABLE IF EXISTS favorites;
+  DROP TABLE IF EXISTS favorites CASCADE;
+  DROP TABLE IF EXISTS cart_items CASCADE;
+  DROP TABLE IF EXISTS products CASCADE;
+  DROP TABLE IF EXISTS categories CASCADE;
+  DROP TYPE IF EXISTS category_type CASCADE;
+  DROP TABLE IF EXISTS users CASCADE;
 
     CREATE TYPE category_type AS ENUM (
       'Electronics',

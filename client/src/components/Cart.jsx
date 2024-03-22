@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { fetchCart, addToCart, removeFromCart, updateCart } from "./db";
 
 const Cart = ({ currentUser }) => {
   const [cartItems, setCartItems] = useState([]);
@@ -7,7 +6,8 @@ const Cart = ({ currentUser }) => {
   useEffect(() => {
     if (currentUser) {
       const fetchData = async () => {
-        const items = await fetchCart(currentUser.id);
+        const response = await fetch(`/api/users/${currentUser.id}/cart`);
+        const items = await response.json();
         setCartItems(items);
       };
 
@@ -17,57 +17,101 @@ const Cart = ({ currentUser }) => {
 
   const handleAddToCart = async (product) => {
     if (currentUser) {
-      await addToCart(currentUser.id, product);
-      setCartItems((prevItems) => [...prevItems, product]);
+      const response = await fetch(`/api/users/${currentUser.id}/cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (response.ok) {
+        setCartItems((prevItems) => [...prevItems, product]);
+      } else {
+        alert("Failed to add to cart");
+      }
     }
   };
 
   const handleRemoveFromCart = async (product) => {
-    await removeFromCart(currentUser.id, product.id);
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => item.id !== product.id)
-    );
+    if (currentUser) {
+      const response = await fetch(
+        `/api/users/${currentUser.id}/cart/${product.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        setCartItems((prevItems) =>
+          prevItems.filter((item) => item.id !== product.id)
+        );
+      } else {
+        alert("Failed to remove from cart");
+      }
+    }
   };
 
   const handleUpdateQuantity = async (productId, newQuantity) => {
-    await updateCart(currentUser.id, productId, newQuantity);
+    if (currentUser) {
+      const response = await fetch(
+        `/api/users/${currentUser.id}/cart/${productId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ quantity: newQuantity }),
+        }
+      );
 
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
-      )
-    );
+      if (response.ok) {
+        setCartItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === productId ? { ...item, quantity: newQuantity } : item
+          )
+        );
+      } else {
+        alert("Failed to update cart");
+      }
+    }
   };
 
   return (
     <div>
       <h1>Cart</h1>
-      {/* Render the cartItems with buttons to add, remove or update */}
+      {cartItems.length === 0 ? (
+        <p>Your cart is empty.</p>
+      ) : (
+        <ul>
+          {cartItems.map((item) => (
+            <li key={item.product.id}>
+              {item.product.name}
+              <button onClick={() => handleRemoveFromCart(item.product)}>
+                Remove from Cart
+              </button>
+              <button
+                onClick={() =>
+                  handleUpdateQuantity(item.product.id, item.quantity + 1)
+                }
+              >
+                Increase Quantity
+              </button>
+              <button
+                onClick={() =>
+                  handleUpdateQuantity(item.product.id, item.quantity - 1)
+                }
+              >
+                Decrease Quantity
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <h2>Add a product to your cart:</h2>
+      {/* Add a form or input fields to add products to cart */}
     </div>
   );
 };
 
 export default Cart;
-
-// import React, { useState, useEffect } from 'react';
-
-// const Cart = () => {
-//   const [cartItems, setCartItems] = useState([]);
-
-//   useEffect(() => {
-//     // Fetch cart items for the current user
-//   }, []);
-
-//   return (
-//     <div>
-//       {cartItems.map((item) => (
-//         <div key={item.id}>
-//           <h3>{item.product.name}</h3>
-//           {/* Display other cart item details */}
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
-
-// export default Cart;

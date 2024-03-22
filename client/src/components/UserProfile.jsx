@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchUser, updateUser } from "./db";
+import PropTypes from "prop-types";
 
 const UserProfile = ({ currentUser }) => {
   const [userData, setUserData] = useState(currentUser);
@@ -7,7 +7,8 @@ const UserProfile = ({ currentUser }) => {
   useEffect(() => {
     if (currentUser) {
       (async () => {
-        const user = await fetchUser(currentUser.id);
+        const response = await fetch(`/api/users/${currentUser.id}`);
+        const user = await response.json();
         setUserData(user);
       })();
     }
@@ -24,36 +25,47 @@ const UserProfile = ({ currentUser }) => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    await updateUser(currentUser.id, userData);
+    const response = await fetch(`/api/users/${currentUser.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if (response.ok) {
+      alert("Profile updated successfully");
+    } else {
+      alert("Failed to update profile");
+    }
   };
 
   return (
     <div>
       <h1>UserProfile</h1>
-      {/* Render the userData and use the handleChange, handleSave functions to save changes */}
+      <form onSubmit={handleSave}>
+        <label>
+          Username:
+          <input
+            type="text"
+            name="username"
+            value={userData.username}
+            onChange={handleChange}
+          />
+        </label>
+        {/* Add other fields as needed */}
+        <button type="submit">Save</button>
+      </form>
     </div>
   );
 };
 
+UserProfile.propTypes = {
+  currentUser: PropTypes.shape({
+    id: PropTypes.number,
+    username: PropTypes.string,
+    // Include other user properties as needed
+  }),
+};
+
 export default UserProfile;
-
-// import React, { useState, useEffect } from 'react';
-
-// const UserProfile = () => {
-//   const [userProfile, setUserProfile] = useState({
-//     // Initialize user profile state
-//   });
-
-//   useEffect(() => {
-//     // Fetch user profile details
-//   }, []);
-
-//   return (
-//     <div>
-//       <h1>User Profile</h1>
-//       {/* Display user profile details */}
-//     </div>
-//   );
-// };
-
-// export default UserProfile;

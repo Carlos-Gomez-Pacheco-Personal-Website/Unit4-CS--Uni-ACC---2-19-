@@ -1,5 +1,5 @@
+import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import { fetchProductById } from "./db";
 
 const ProductDetails = ({ currentUser, match }) => {
   const [product, setProduct] = useState(null);
@@ -7,7 +7,8 @@ const ProductDetails = ({ currentUser, match }) => {
   useEffect(() => {
     (async () => {
       const productId = match.params.id;
-      const product = await fetchProductById(productId);
+      const response = await fetch(`/api/products/${productId}`);
+      const product = await response.json();
       setProduct(product);
     })();
   }, []);
@@ -19,34 +20,22 @@ const ProductDetails = ({ currentUser, match }) => {
   return (
     <div>
       <h1>{product.name}</h1>
-      {/* Render product details here */}
+      <p>{product.description}</p>
+      <button onClick={() => handleAddToCart(product)}>Add to Cart</button>
+      <button onClick={() => handleAddToFavorites(product)}>
+        Add to Favorites
+      </button>
     </div>
   );
 };
 
+ProductDetails.propTypes = {
+  currentUser: PropTypes.any,
+  match: PropTypes.shape({
+    params: PropTypes.shape({
+      id: PropTypes.any,
+    }),
+  }),
+};
+
 export default ProductDetails;
-
-// import React, { useState, useEffect } from 'react';
-// import { useParams } from 'react-router-dom';
-
-// const ProductDetails = () => {
-//   const { id } = useParams();
-//   const [product, setProduct] = useState(null);
-
-//   useEffect(() => {
-//     // Fetch the product details from the API using the id
-//   }, [id]);
-
-//   if (!product) {
-//     return <div>Loading...</div>;
-//   }
-
-//   return (
-//     <div>
-//       <h2>{product.name}</h2>
-//       {/* Display other product details */}
-//     </div>
-//   );
-// };
-
-// export default ProductDetails;
