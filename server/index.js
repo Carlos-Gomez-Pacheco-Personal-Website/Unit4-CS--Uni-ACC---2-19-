@@ -35,8 +35,6 @@ app.use(
   express.static(path.join(__dirname, "../client/dist/assets"))
 );
 
-// Connect to the database
-client.connect();
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const isLoggedIn = async (req, res, next) => {
@@ -69,23 +67,22 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-// Authentication middleware to verify if the user is logged in
-const authMiddleware = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(" ")[1]; // Bearer <token>
-    const user = await findUserByToken(token);
-    if (!user) {
-      return res.status(401).send("Unauthorized");
-    }
-    req.user = user; // Add user to the request object
-    next();
-  } catch (error) {
-    res.status(401).send("Unauthorized");
-  }
-};
-
 // Apply the 'authMiddleware' to all routes that require authentication
 app.use("/api", authMiddleware);
+// Authentication middleware to verify if the user is logged in
+// const authMiddleware = async (req, res, next) => {
+//   try {
+//     const token = req.headers.authorization.split(" ")[1]; // Bearer <token>
+//     const user = await findUserByToken(token);
+//     if (!user) {
+//       return res.status(401).send("Unauthorized");
+//     }
+//     req.user = user; // Add user to the request object
+//     next();
+//   } catch (error) {
+//     res.status(401).send("Unauthorized");
+//   }
+// };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -269,13 +266,12 @@ app.use((err, req, res, next) => {
 
 const init = async () => {
   const port = process.env.PORT || 3000;
+
   try {
     await client.connect();
     console.log("connected to database");
-
     await createTables();
     console.log("tables created");
-
     // First, create categories to ensure we have the category IDs
     const [electronicsCategory, clothingCategory] = await Promise.all([
       createCategory({

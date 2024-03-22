@@ -7,9 +7,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const JWT = process.env.JWT || "shhh";
 
-// Connect to the database
-client.connect();
-
 // Create the tables
 const createTables = async () => {
   const SQL = `
@@ -325,6 +322,7 @@ const authMiddleware = (...methods) => {
 };
 
 module.exports = {
+  client,
   createTables,
   createUser,
   createProduct,
