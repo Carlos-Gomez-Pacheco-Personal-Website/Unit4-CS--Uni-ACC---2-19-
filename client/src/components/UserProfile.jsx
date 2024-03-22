@@ -36,3 +36,24 @@ const UserProfile = ({ currentUser }) => {
 };
 
 export default UserProfile;
+
+// import React, { useState, useEffect } from 'react';
+
+// const UserProfile = () => {
+//   const [userProfile, setUserProfile] = useState({
+//     // Initialize user profile state
+//   });
+
+//   useEffect(() => {
+//     // Fetch user profile details
+//   }, []);
+
+//   return (
+//     <div>
+//       <h1>User Profile</h1>
+//       {/* Display user profile details */}
+//     </div>
+//   );
+// };
+
+// export default UserProfile;

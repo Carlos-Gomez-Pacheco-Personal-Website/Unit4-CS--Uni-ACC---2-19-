@@ -57,3 +57,25 @@ const Checkout = ({ currentUser }) => {
 };
 
 export default Checkout;
+
+// import React, { useState } from 'react';
+
+// const Checkout = () => {
+//   const [orderDetails, setOrderDetails] = useState({
+//     // Initialize order details state
+//   });
+
+//   const handleSubmit = async (event) => {
+//     event.preventDefault();
+//     // Process the checkout
+//   };
+
+//   return (
+//     <form onSubmit={handleSubmit}>
+//       {/* Input fields for payment and shipping details */}
+//       <button type="submit">Place Order</button>
+//     </form>
+//   );
+// };
+
+// export default Checkout;

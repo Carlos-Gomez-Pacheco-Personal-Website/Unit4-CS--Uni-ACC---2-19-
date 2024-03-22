@@ -25,3 +25,26 @@ Products.propTypes = {
 };
 
 export default Products;
+
+// import React, { useState, useEffect } from 'react';
+
+// const Products = () => {
+//   const [products, setProducts] = useState([]);
+
+//   useEffect(() => {
+//     // Fetch products from the API and set state
+//   }, []);
+
+//   return (
+//     <div>
+//       {products.map((product) => (
+//         <div key={product.id}>
+//           <h3>{product.name}</h3>
+//           {/* Render other product details */}
+//         </div>
+//       ))}
+//     </div>
+//   );
+// };
+
+// export default Products;

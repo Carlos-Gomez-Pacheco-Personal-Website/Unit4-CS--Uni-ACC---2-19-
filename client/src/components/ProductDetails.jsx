@@ -25,3 +25,28 @@ const ProductDetails = ({ currentUser, match }) => {
 };
 
 export default ProductDetails;
+
+// import React, { useState, useEffect } from 'react';
+// import { useParams } from 'react-router-dom';
+
+// const ProductDetails = () => {
+//   const { id } = useParams();
+//   const [product, setProduct] = useState(null);
+
+//   useEffect(() => {
+//     // Fetch the product details from the API using the id
+//   }, [id]);
+
+//   if (!product) {
+//     return <div>Loading...</div>;
+//   }
+
+//   return (
+//     <div>
+//       <h2>{product.name}</h2>
+//       {/* Display other product details */}
+//     </div>
+//   );
+// };
+
+// export default ProductDetails;

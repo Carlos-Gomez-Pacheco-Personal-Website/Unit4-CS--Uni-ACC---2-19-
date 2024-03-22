@@ -53,3 +53,26 @@ const Favorites = ({ currentUser }) => {
 };
 
 export default Favorites;
+
+// import React, { useState, useEffect } from 'react';
+
+// const Favorites = () => {
+//   const [favorites, setFavorites] = useState([]);
+
+//   useEffect(() => {
+//     // Fetch favorite items for the current user
+//   }, []);
+
+//   return (
+//     <div>
+//       {favorites.map((item) => (
+//         <div key={item.id}>
+//           <h3>{item.product.name}</h3>
+//           {/* Display other favorite item details */}
+//         </div>
+//       ))}
+//     </div>
+//   );
+// };
+
+// export default Favorites;
