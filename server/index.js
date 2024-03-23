@@ -100,7 +100,7 @@ FIXME: app.post("/api/auth/login", async (req, res, next) => {
 
 app.get("/api/auth/me", isLoggedIn, async (req, res, next) => {
   try {
-    res.send(await findUserWithToken(req.headers.authorization));
+    res.send(await findUserByToken(req.headers.authorization));
   } catch (ex) {
     next(ex);
   }

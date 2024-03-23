@@ -236,54 +236,43 @@ const updateFavorite = async (id, { user_id, product_id }) => {
 
 const authenticate = async ({ username, password }) => {
   const SQL = `
-    SELECT * FROM users
-    WHERE users.username = $1
+    SELECT id, password, username 
+    FROM users 
+    WHERE username=$1;
   `;
-
   const response = await client.query(SQL, [username]);
-
-  if (!response.rowCount) {
-    return null;
+  if (
+    (!response.rows.length ||
+      (await bcrypt.compare(password, response.rows[0].password))) === false
+  ) {
+    const error = Error("not authorized");
+    error.status = 401;
+    throw error;
   }
-
-  const user = response.rows[0];
-
-  if ((await bcrypt.compare(password, user.password)) && user) {
-    const payload = {
-      id: user.id,
-      role: "user",
-    };
-
-    const token = jwt.sign(payload, JWT);
-
-    return {
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-      },
-    };
-  }
-  return null;
+  const token = await jwt.sign({ id: response.rows[0].id }, JWT);
+  return { token: token };
 };
 
 const findUserByToken = async (token) => {
-  const payload = jwt.verify(token, JWT);
-  const ID = payload.id;
-  const SQL = `
-    SELECT * FROM users
-    WHERE users.id = $1
-  `;
-
-  const response = await client.query(SQL, [ID]);
-
-  if (!response.rowCount) {
-    return null;
+  let id;
+  try {
+    const payload = await jwt.verify(token, JWT);
+    id = payload.id;
+  } catch (ex) {
+    const error = Error("not authorized");
+    error.status = 401;
+    throw error;
   }
-
-  const user = response.rows[0];
-
-  return user;
+  const SQL = `
+    SELECT id, username FROM users WHERE id=$1;
+  `;
+  const response = await client.query(SQL, [id]);
+  if (!response.rows.length) {
+    const error = Error("not authorized");
+    error.status = 401;
+    throw error;
+  }
+  return response.rows[0];
 };
 
 const authMiddleware = (...methods) => {
