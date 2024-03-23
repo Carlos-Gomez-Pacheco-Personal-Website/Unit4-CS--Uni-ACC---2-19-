@@ -1,19 +1,16 @@
 // Login.jsx
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-const Login = ({ login }) => {
-  // Destructure login from props
+const Login = ({ login, onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await login({ username, password });
-      navigate("/");
+      onLogin(); // Call the onLogin function after a successful login
     } catch (error) {
       console.error("Failed to login:", error);
       alert("Failed to login. Please try again.");
@@ -44,7 +41,8 @@ const Login = ({ login }) => {
 };
 
 Login.propTypes = {
-  login: PropTypes.func.isRequired, // login is required
+  login: PropTypes.func.isRequired,
+  onLogin: PropTypes.func.isRequired,
 };
 
 export default Login;

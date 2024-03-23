@@ -1,20 +1,9 @@
 // Products.jsx
-import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
-const Products = () => {
-  const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const response = await fetch("/api/products");
-      const productsData = await response.json();
-      setProducts(productsData);
-    };
-
-    fetchProducts();
-  }, []);
-
+const Products = ({ products }) => {
+  // Destructure products from props
   return (
     <div>
       <h1>Products</h1>
@@ -27,6 +16,12 @@ const Products = () => {
       ))}
     </div>
   );
+};
+
+Products.propTypes = {
+  products: PropTypes.shape({
+    map: PropTypes.func,
+  }),
 };
 
 export default Products;

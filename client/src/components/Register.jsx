@@ -1,19 +1,17 @@
 // Register.jsx
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-const Register = ({ register }) => {
-  // Destructure register from props
+const Register = ({ register, onRegister }) => {
+  // Destructure onRegister from props
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await register({ username, password });
-      navigate("/login"); // Navigate to login page after successful registration
+      onRegister(); // Call the onRegister function after a successful registration
     } catch (error) {
       console.error("Failed to register:", error);
       alert("Failed to register. Please try again.");
@@ -44,7 +42,8 @@ const Register = ({ register }) => {
 };
 
 Register.propTypes = {
-  register: PropTypes.func,
+  register: PropTypes.func.isRequired, // register is required
+  onRegister: PropTypes.func.isRequired, // onRegister is required
 };
 
 export default Register;

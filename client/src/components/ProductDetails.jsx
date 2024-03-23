@@ -2,7 +2,7 @@
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 
-const ProductDetails = ({ currentUser, match }) => {
+const ProductDetails = ({ addToCart, addFavorite, auth, match }) => {
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
@@ -26,19 +26,8 @@ const ProductDetails = ({ currentUser, match }) => {
 
   const handleAddToCart = async (product) => {
     try {
-      const response = await fetch(`/api/users/${currentUser.id}/cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ product_id: product.id }),
-      });
-
-      if (response.ok) {
-        alert("Product added to cart successfully!");
-      } else {
-        alert("Failed to add product to cart");
-      }
+      await addToCart(product.id); // Use addToCart function passed from App.jsx
+      alert("Product added to cart successfully!");
     } catch (error) {
       console.error("Failed to add product to cart:", error);
     }
@@ -46,19 +35,8 @@ const ProductDetails = ({ currentUser, match }) => {
 
   const handleAddToFavorites = async (product) => {
     try {
-      const response = await fetch(`/api/users/${currentUser.id}/favorites`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ product_id: product.id }),
-      });
-
-      if (response.ok) {
-        alert("Product added to favorites successfully!");
-      } else {
-        alert("Failed to add product to favorites");
-      }
+      await addFavorite(product.id); // Use addFavorite function passed from App.jsx
+      alert("Product added to favorites successfully!");
     } catch (error) {
       console.error("Failed to add product to favorites:", error);
     }
@@ -81,7 +59,9 @@ const ProductDetails = ({ currentUser, match }) => {
 };
 
 ProductDetails.propTypes = {
-  currentUser: PropTypes.any,
+  addToCart: PropTypes.func.isRequired, // addToCart is required
+  addFavorite: PropTypes.func.isRequired, // addFavorite is required
+  auth: PropTypes.object.isRequired, // auth is required
   match: PropTypes.shape({
     params: PropTypes.shape({
       id: PropTypes.any,

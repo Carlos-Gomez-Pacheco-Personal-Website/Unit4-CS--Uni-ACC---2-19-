@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route } from "react-router-dom";
 import "./App.css";
 import { useState, useEffect } from "react";
 
@@ -44,8 +44,8 @@ function App() {
   useEffect(() => {
     const fetchProducts = async () => {
       const response = await fetch("/api/products");
-      const json = await response.json();
-      setProducts(json);
+      const productsData = await response.json();
+      setProducts(productsData);
     };
 
     fetchProducts();
@@ -146,6 +146,11 @@ function App() {
   };
 
   const addToCart = async (product_id) => {
+    if (!auth || !auth.id) {
+      alert("Please log in to add items to the cart.");
+      return;
+    }
+
     const response = await fetch(`/api/users/${auth.id}/cart`, {
       method: "POST",
       headers: {
@@ -165,31 +170,53 @@ function App() {
 
   return (
     <Router>
-      <Navigation />
-      <Routes>
-        <Route path="/" element={<Products />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/products/:id" element={<ProductDetails />} />
-        <Route path="/login" element={<Login login={login} />} />
-        <Route path="/register" element={<Register register={register} />} />
-        <Route path="/cart" element={<Cart addToCart={addToCart} />} />{" "}
-        {/* Pass addToCart function as prop */}
-        <Route
-          path="/favorites"
-          element={
-            <Favorites
-              addFavorite={addFavorite}
-              removeFavorite={removeFavorite}
-              addToCart={addToCart}
-            />
-          }
-        />{" "}
-        {/* Pass addToCart function as prop */}
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/confirmation" element={<Confirmation />} />
-        <Route path="/profile" element={<UserProfile />} />
-        <Route path="/admin" element={<AdminPanel />} />
-      </Routes>
+      <Navigation logout={logout} /> {/* Pass logout function as prop */}
+      <Route exact path="/" render={() => <Products products={products} />} />
+      <Route
+        exact
+        path="/products"
+        render={() => <Products products={products} />}
+      />
+      <Route
+        exact
+        path="/products/:id"
+        render={() => (
+          <ProductDetails
+            addToCart={addToCart}
+            addFavorite={addFavorite}
+            auth={auth}
+          />
+        )}
+      />
+      <Route exact path="/login" render={() => <Login login={login} />} />
+      <Route
+        exact
+        path="/register"
+        render={() => <Register register={register} />}
+      />
+      <Route
+        exact
+        path="/cart"
+        render={() => <Cart addToCart={addToCart} auth={auth} />}
+      />{" "}
+      {/* Pass addToCart function as prop */}
+      <Route
+        exact
+        path="/favorites"
+        render={() => (
+          <Favorites
+            addFavorite={addFavorite}
+            removeFavorite={removeFavorite}
+            addToCart={addToCart}
+            auth={auth}
+          />
+        )}
+      />{" "}
+      {/* Pass addToCart function as prop */}
+      <Route exact path="/checkout" component={Checkout} />
+      <Route exact path="/confirmation" component={Confirmation} />
+      <Route exact path="/profile" component={UserProfile} />
+      <Route exact path="/admin" component={AdminPanel} />
     </Router>
   );
 }
