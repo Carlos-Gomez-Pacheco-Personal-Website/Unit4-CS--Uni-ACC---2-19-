@@ -19,9 +19,7 @@ const Products = ({ products }) => {
 };
 
 Products.propTypes = {
-  products: PropTypes.shape({
-    map: PropTypes.func,
-  }),
+  products: PropTypes.array.isRequired, // Change to PropTypes.array
 };
 
 export default Products;

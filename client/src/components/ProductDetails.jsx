@@ -1,14 +1,16 @@
 // ProductDetails.jsx
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
-const ProductDetails = ({ addToCart, addFavorite, auth, match }) => {
+const ProductDetails = ({ addToCart, addFavorite, auth }) => {
   const [product, setProduct] = useState(null);
+  const { id } = useParams(); // Use useParams to get the id
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const productId = match.params.id;
+        const productId = id;
         const response = await fetch(`/api/products/${productId}`);
         if (response.ok) {
           const product = await response.json();
@@ -22,7 +24,7 @@ const ProductDetails = ({ addToCart, addFavorite, auth, match }) => {
     };
 
     fetchProduct();
-  }, [match.params.id]);
+  }, [id]);
 
   const handleAddToCart = async (product) => {
     try {
@@ -62,11 +64,6 @@ ProductDetails.propTypes = {
   addToCart: PropTypes.func.isRequired, // addToCart is required
   addFavorite: PropTypes.func.isRequired, // addFavorite is required
   auth: PropTypes.object.isRequired, // auth is required
-  match: PropTypes.shape({
-    params: PropTypes.shape({
-      id: PropTypes.any,
-    }),
-  }),
 };
 
 export default ProductDetails;
