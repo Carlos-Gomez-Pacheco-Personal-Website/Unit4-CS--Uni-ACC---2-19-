@@ -2,7 +2,7 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-const Login = ({ login, onLogin }) => {
+const Login = ({ login }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -10,7 +10,6 @@ const Login = ({ login, onLogin }) => {
     e.preventDefault();
     try {
       await login({ username, password });
-      onLogin(); // Call the onLogin function after a successful login
     } catch (error) {
       console.error("Failed to login:", error);
       alert("Failed to login. Please try again.");
@@ -35,14 +34,13 @@ const Login = ({ login, onLogin }) => {
           onChange={(e) => setPassword(e.target.value)}
         />
       </label>
-      <button type="submit">Login</button>
+      <button disabled={!username || !password}>Login</button>
     </form>
   );
 };
 
 Login.propTypes = {
   login: PropTypes.func.isRequired,
-  onLogin: PropTypes.func.isRequired,
 };
 
 export default Login;

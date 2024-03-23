@@ -2,19 +2,20 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-const Register = ({ register, onRegister }) => {
+const Register = ({ register }) => {
   // Destructure onRegister from props
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await register({ username, password });
-      onRegister(); // Call the onRegister function after a successful registration
     } catch (error) {
       console.error("Failed to register:", error);
       alert("Failed to register. Please try again.");
+      setError(error.message);
     }
   };
 
@@ -36,14 +37,14 @@ const Register = ({ register, onRegister }) => {
           onChange={(e) => setPassword(e.target.value)}
         />
       </label>
-      <button type="submit">Register</button>
+      <button disabled={!username || !password}>Register</button>
+      {error && <div className="error">{error}</div>}
     </form>
   );
 };
 
 Register.propTypes = {
   register: PropTypes.func.isRequired, // register is required
-  onRegister: PropTypes.func.isRequired, // onRegister is required
 };
 
 export default Register;
