@@ -1,8 +1,10 @@
 // Register.jsx
+import PropTypes from "prop-types";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Register = () => {
+const Register = ({ register }) => {
+  // Destructure register from props
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -10,20 +12,8 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (response.ok) {
-        alert("Registration successful");
-        navigate("/login"); // Navigate to login page after successful registration
-      } else {
-        alert("Registration failed");
-      }
+      await register({ username, password });
+      navigate("/login"); // Navigate to login page after successful registration
     } catch (error) {
       console.error("Failed to register:", error);
       alert("Failed to register. Please try again.");
@@ -51,6 +41,10 @@ const Register = () => {
       <button type="submit">Register</button>
     </form>
   );
+};
+
+Register.propTypes = {
+  register: PropTypes.func,
 };
 
 export default Register;

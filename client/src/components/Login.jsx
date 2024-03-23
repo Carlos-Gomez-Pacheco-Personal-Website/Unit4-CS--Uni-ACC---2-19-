@@ -3,8 +3,8 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Login = ({ setCurrentUser }) => {
-  // Fixed: Destructure setCurrentUser from props
+const Login = ({ login }) => {
+  // Destructure login from props
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -12,21 +12,8 @@ const Login = ({ setCurrentUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (response.ok) {
-        const user = await response.json();
-        setCurrentUser(user);
-        navigate("/");
-      } else {
-        alert("Invalid credentials");
-      }
+      await login({ username, password });
+      navigate("/");
     } catch (error) {
       console.error("Failed to login:", error);
       alert("Failed to login. Please try again.");
@@ -57,7 +44,7 @@ const Login = ({ setCurrentUser }) => {
 };
 
 Login.propTypes = {
-  setCurrentUser: PropTypes.func.isRequired, // setCurrentUser is required
+  login: PropTypes.func.isRequired, // login is required
 };
 
 export default Login;

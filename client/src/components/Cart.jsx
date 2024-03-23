@@ -2,47 +2,35 @@ import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const Cart = ({ currentUser }) => {
+const Cart = ({ addToCart, auth }) => {
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
-    if (currentUser) {
+    if (auth.id) {
       const fetchData = async () => {
-        const response = await fetch(`/api/users/${currentUser.id}/cart`);
+        const response = await fetch(`/api/users/${auth.id}/cart`);
         const items = await response.json();
         setCartItems(items);
       };
 
       fetchData();
     }
-  }, [currentUser]);
+  }, [auth]); // Use auth instead of currentUser
 
-  // const handleAddToCart = async (product) => {
-  //   if (currentUser) {
-  //     const response = await fetch(`/api/users/${currentUser.id}/cart`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(product),
-  //     });
-
-  //     if (response.ok) {
-  //       setCartItems((prevItems) => [...prevItems, product]);
-  //     } else {
-  //       alert("Failed to add to cart");
-  //     }
-  //   }
-  // };
+  const handleAddToCart = async (product) => {
+    try {
+      await addToCart(product.id); // Use addToCart function passed from App.jsx
+      alert("Product added to cart successfully!");
+    } catch (error) {
+      console.error("Failed to add product to cart:", error);
+    }
+  };
 
   const handleRemoveFromCart = async (product) => {
-    if (currentUser) {
-      const response = await fetch(
-        `/api/users/${currentUser.id}/cart/${product.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+    if (auth.id) {
+      const response = await fetch(`/api/users/${auth.id}/cart/${product.id}`, {
+        method: "DELETE",
+      });
 
       if (response.ok) {
         setCartItems((prevItems) =>
@@ -55,17 +43,14 @@ const Cart = ({ currentUser }) => {
   };
 
   const handleUpdateQuantity = async (productId, newQuantity) => {
-    if (currentUser) {
-      const response = await fetch(
-        `/api/users/${currentUser.id}/cart/${productId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ quantity: newQuantity }),
-        }
-      );
+    if (auth.id) {
+      const response = await fetch(`/api/users/${auth.id}/cart/${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+      });
 
       if (response.ok) {
         setCartItems((prevItems) =>
@@ -118,9 +103,8 @@ const Cart = ({ currentUser }) => {
 };
 
 Cart.propTypes = {
-  currentUser: PropTypes.shape({
-    id: PropTypes.any,
-  }),
+  addToCart: PropTypes.func.isRequired, // addToCart is required
+  auth: PropTypes.object.isRequired, // auth is required
 };
 
 export default Cart;
