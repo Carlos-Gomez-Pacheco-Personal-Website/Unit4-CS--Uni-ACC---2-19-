@@ -152,15 +152,6 @@ app.get("/api/products", async (req, res, next) => {
     next(ex);
   }
 });
-// app.get("/api/products", async (req, res, next) => {
-//   try {
-//     const SQL = `SELECT * FROM products`;
-//     const response = await client.query(SQL);
-//     res.send(response.rows);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
 
 app.post("/api/products", isAdmin, async (req, res, next) => {
   try {
@@ -272,15 +263,6 @@ app.get("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
     next(ex);
   }
 });
-// app.get("/api/favorites", isLoggedIn, async (req, res, next) => {
-//   try {
-//     const SQL = `SELECT * FROM favorites`;
-//     const response = await client.query(SQL);
-//     res.send(response.rows);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
 app.post("/api/favorites", isLoggedIn, async (req, res, next) => {
   try {
     const favorite = await createFavorite(req.body);
@@ -332,71 +314,67 @@ const init = async () => {
   console.log("connected to database");
   await createTables();
   console.log("tables created");
-  try {
-    // First, create categories to ensure we have the category IDs
-    const [electronicsCategory, clothingCategory] = await Promise.all([
-      createCategory({
-        name: "Electronics",
-        type: "Electronics",
-        description: "All electronic items",
-      }),
-      createCategory({
-        name: "Clothing",
-        type: "Clothing",
-        description: "Fashionable apparel and accessories",
-      }),
-    ]);
+  // First, create categories to ensure we have the category IDs
+  const [electronicsCategory, clothingCategory] = await Promise.all([
+    createCategory({
+      name: "Electronics",
+      type: "Electronics",
+      description: "All electronic items",
+    }),
+    createCategory({
+      name: "Clothing",
+      type: "Clothing",
+      description: "Fashionable apparel and accessories",
+    }),
+  ]);
 
-    // Now that we have category IDs, we can create products
-    const [laptopProduct, tshirtProduct] = await Promise.all([
-      createProduct({
-        name: "Laptop",
-        date: new Date(),
-        description: "High-performance laptop",
-        image:
-          "https://www.bhphotovideo.com/images/images2500x2500/asus_g513qr_es96_15_6_republic_of_gamers_1616909.jpg",
-        cost: 999.99,
-        category_id: electronicsCategory.id,
-      }),
-      createProduct({
-        name: "T-Shirt",
-        date: new Date(),
-        description: "Cotton unisex t-shirt",
-        image:
-          "https://th.bing.com/th/id/OIP.DSjZPk9uy01_f2ox4Q5QPgHaHa?rs=1&pid=ImgDetMain",
-        cost: 19.99,
-        category_id: clothingCategory.id,
-      }),
-    ]);
+  // Now that we have category IDs, we can create products
+  const [laptopProduct, tshirtProduct] = await Promise.all([
+    createProduct({
+      name: "Laptop",
+      date: new Date(),
+      description: "High-performance laptop",
+      image:
+        "https://www.bhphotovideo.com/images/images2500x2500/asus_g513qr_es96_15_6_republic_of_gamers_1616909.jpg",
+      cost: 999.99,
+      category_id: electronicsCategory.id,
+    }),
+    createProduct({
+      name: "T-Shirt",
+      date: new Date(),
+      description: "Cotton unisex t-shirt",
+      image:
+        "https://th.bing.com/th/id/OIP.DSjZPk9uy01_f2ox4Q5QPgHaHa?rs=1&pid=ImgDetMain",
+      cost: 19.99,
+      category_id: clothingCategory.id,
+    }),
+  ]);
 
-    // Create users
-    const [adminUser, regularUser] = await Promise.all([
-      createUser({
-        username: "admincarlos",
-        password: "admin123456",
-        isAdmin: true,
-      }),
-      createUser({
-        username: "carlos",
-        password: "123456",
-        isAdmin: false,
-      }),
-    ]);
+  // Create users
+  const [adminUser, regularUser] = await Promise.all([
+    createUser({
+      username: "admincarlos",
+      password: "admin123456",
+      isAdmin: true,
+    }),
+    createUser({
+      username: "carlos",
+      password: "123456",
+      isAdmin: false,
+    }),
+  ]);
 
-    // Now that we have user IDs, we can create cart items and favorites
-    const [cartItem1, favorite1] = await Promise.all([
-      createCartItem({
-        user_id: regularUser.id,
-        product_id: laptopProduct.id,
-        quantity: 1,
-      }),
-      createFavorite({ user_id: regularUser.id, product_id: tshirtProduct.id }),
-    ]);
+  // Now that we have user IDs, we can create cart items and favorites
+  const [cartItem1, favorite1] = await Promise.all([
+    createCartItem({
+      user_id: regularUser.id,
+      product_id: laptopProduct.id,
+      quantity: 1,
+    }),
+    createFavorite({ user_id: regularUser.id, product_id: tshirtProduct.id }),
+  ]);
 
-    console.log("Initialization completed");
-  } catch (error) {
-    console.error("Failed to initialize the application:", error);
-  }
+  console.log("Initialization completed");
 
   app.listen(port, () => console.log(`listening on port ${port}`));
 };
