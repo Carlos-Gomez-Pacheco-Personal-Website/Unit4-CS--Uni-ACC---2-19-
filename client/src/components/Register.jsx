@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 
 const Register = ({ register }) => {
-  // Destructure onRegister from props
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

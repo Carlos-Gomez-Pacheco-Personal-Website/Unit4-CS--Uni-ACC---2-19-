@@ -12,6 +12,9 @@ const Navigation = ({ currentUser }) => {
         </li>
         {!currentUser && (
           <>
+            {/* <li>
+              <Link to="/products">Products</Link>
+            </li> */}
             <li>
               <Link to="/login">Login</Link>
             </li>

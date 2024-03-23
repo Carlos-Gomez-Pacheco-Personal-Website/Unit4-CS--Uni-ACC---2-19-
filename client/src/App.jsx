@@ -44,8 +44,8 @@ function App() {
   useEffect(() => {
     const fetchProducts = async () => {
       const response = await fetch("/api/products");
-      const productsData = await response.json();
-      setProducts(productsData);
+      const json = await response.json();
+      setProducts(json);
     };
 
     fetchProducts();
@@ -129,7 +129,7 @@ function App() {
   };
 
   const register = async (credentials) => {
-    const response = await fetch("/api/auth/register", {
+    const response = await fetch("/api/users", {
       method: "POST",
       body: JSON.stringify(credentials),
       headers: {
