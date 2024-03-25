@@ -60,6 +60,7 @@ const createTables = async () => {
   await client.query(SQL);
 };
 
+//User
 const createUser = async ({ username, password }) => {
   const SQL = `
     INSERT INTO users(id, username, password) VALUES($1, $2, $3) RETURNING *
@@ -70,44 +71,6 @@ const createUser = async ({ username, password }) => {
     await bcrypt.hash(password, 5),
   ]);
   return response.rows[0];
-};
-
-const createProduct = async ({
-  name,
-  price,
-  quantity,
-  description,
-  image,
-  category_id,
-}) => {
-  const SQL = `
-    INSERT INTO products(id, name, price, quantity, description, image, category_id) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *
-  `;
-  const response = await client.query(SQL, [
-    uuid.v4(),
-    name,
-    price,
-    quantity,
-    description,
-    image,
-    category_id,
-  ]);
-  return response.rows[0];
-};
-
-const createFavorite = async ({ user_id, product_id }) => {
-  const SQL = `
-    INSERT INTO favorites(id, user_id, product_id) VALUES($1, $2, $3) RETURNING *
-  `;
-  const response = await client.query(SQL, [uuid.v4(), user_id, product_id]);
-  return response.rows[0];
-};
-
-const destroyFavorite = async ({ user_id, id }) => {
-  const SQL = `
-    DELETE FROM favorites WHERE user_id=$1 AND id=$2
-  `;
-  await client.query(SQL, [user_id, id]);
 };
 
 const authenticate = async ({ username, password }) => {
@@ -158,15 +121,7 @@ const fetchUsers = async () => {
   const response = await client.query(SQL);
   return response.rows;
 };
-
-const fetchProducts = async () => {
-  const SQL = `
-    SELECT * FROM products;
-  `;
-  const response = await client.query(SQL);
-  return response.rows;
-};
-
+// Favorite
 const fetchFavorites = async (user_id) => {
   const SQL = `
     SELECT * FROM favorites where user_id = $1
@@ -175,7 +130,29 @@ const fetchFavorites = async (user_id) => {
   return response.rows;
 };
 
-///////////////////////////////////////////////////////////////////////
+const createFavorite = async ({ user_id, product_id }) => {
+  const SQL = `
+    INSERT INTO favorites(id, user_id, product_id) VALUES($1, $2, $3) RETURNING *
+  `;
+  const response = await client.query(SQL, [uuid.v4(), user_id, product_id]);
+  return response.rows[0];
+};
+
+const destroyFavorite = async ({ user_id, id }) => {
+  const SQL = `
+    DELETE FROM favorites WHERE user_id=$1 AND id=$2
+  `;
+  await client.query(SQL, [user_id, id]);
+};
+
+// Products
+const fetchProducts = async () => {
+  const SQL = `
+    SELECT * FROM products;
+  `;
+  const response = await client.query(SQL);
+  return response.rows;
+};
 
 const updateProduct = async ({
   id,
@@ -202,17 +179,30 @@ const updateProduct = async ({
   return response.rows[0];
 };
 
-const updateCart = async ({ id, user_id, product_id, quantity }) => {
+const createProduct = async ({
+  name,
+  price,
+  quantity,
+  description,
+  image,
+  category_id,
+}) => {
   const SQL = `
-    UPDATE cart
-    SET user_id = $2, product_id = $3, quantity = $4
-    WHERE id = $1
-    RETURNING *
+    INSERT INTO products(id, name, price, quantity, description, image, category_id) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *
   `;
-  const response = await client.query(SQL, [id, user_id, product_id, quantity]);
+  const response = await client.query(SQL, [
+    uuid.v4(),
+    name,
+    price,
+    quantity,
+    description,
+    image,
+    category_id,
+  ]);
   return response.rows[0];
 };
 
+// Category
 const createCategory = async ({ name }) => {
   const SQL = `
     INSERT INTO categories(id, name) VALUES($1, $2) RETURNING *
@@ -220,7 +210,7 @@ const createCategory = async ({ name }) => {
   const response = await client.query(SQL, [uuid.v4(), name]);
   return response.rows[0];
 };
-
+// Cart
 const addToCart = async ({ user_id, product_id, quantity }) => {
   const SQL = `
     INSERT INTO cart(id, user_id, product_id, quantity) VALUES($1, $2, $3, $4) RETURNING *
@@ -249,6 +239,86 @@ const checkout = async ({ user_id }) => {
   return response.rows[0];
 };
 
+const createCartItem = async ({ user_id, product_id, quantity }) => {
+  const SQL = `
+    INSERT INTO cart(id, user_id, product_id, quantity) VALUES($1, $2, $3, $4) RETURNING *
+  `;
+  const response = await client.query(SQL, [
+    uuid.v4(),
+    user_id,
+    product_id,
+    quantity,
+  ]);
+  return response.rows[0];
+};
+
+const updateCart = async ({ id, user_id, product_id, quantity }) => {
+  const SQL = `
+    UPDATE cart
+    SET user_id = $2, product_id = $3, quantity = $4
+    WHERE id = $1
+    RETURNING *
+  `;
+  const response = await client.query(SQL, [id, user_id, product_id, quantity]);
+  return response.rows[0];
+};
+
+const fetchCart = async (user_id) => {
+  const SQL = `
+    SELECT * FROM cart WHERE user_id = $1
+  `;
+  const response = await client.query(SQL, [user_id]);
+  return response.rows;
+};
+
+const fetchCartTotal = async (user_id) => {
+  const SQL = `
+    SELECT SUM(p.price * c.quantity) as total
+    FROM cart c
+    JOIN products p ON p.id = c.product_id
+    WHERE c.user_id = $1
+  `;
+  const response = await client.query(SQL, [user_id]);
+  return response.rows[0].total;
+};
+
+// Administrator
+
+const isAdmin = async (user_id) => {
+  const SQL = `
+    SELECT is_admin FROM users WHERE id = $1
+  `;
+  const response = await client.query(SQL, [user_id]);
+  return response.rows[0].is_admin;
+};
+// Orders
+const fetchOrders = async (user_id) => {
+  const SQL = `
+    SELECT * FROM orders WHERE user_id = $1
+  `;
+  const response = await client.query(SQL, [user_id]);
+  return response.rows;
+};
+
+const fetchOrderItems = async (order_id) => {
+  const SQL = `
+    SELECT * FROM order_items WHERE order_id = $1
+  `;
+  const response = await client.query(SQL, [order_id]);
+  return response.rows;
+};
+
+const fetchOrderTotal = async (order_id) => {
+  const SQL = `
+    SELECT SUM(p.price * oi.quantity) as total
+    FROM order_items oi
+    JOIN products p ON p.id = oi.product_id
+    WHERE oi.order_id = $1
+  `;
+  const response = await client.query(SQL, [order_id]);
+  return response.rows[0].total;
+};
+
 module.exports = {
   client,
   createTables,
@@ -260,6 +330,13 @@ module.exports = {
   checkout,
   updateProduct,
   updateCart,
+  isAdmin,
+  createCartItem,
+  fetchCart,
+  fetchCartTotal,
+  fetchOrders,
+  fetchOrderItems,
+  fetchOrderTotal,
   fetchUsers,
   fetchProducts,
   fetchFavorites,

@@ -9,6 +9,13 @@ const {
   checkout,
   updateProduct,
   updateCart,
+  isAdmin,
+  createCartItem,
+  fetchCart,
+  fetchCartTotal,
+  fetchOrders,
+  fetchOrderItems,
+  fetchOrderTotal,
   fetchUsers,
   fetchProducts,
   fetchFavorites,
@@ -40,7 +47,7 @@ const isLoggedIn = async (req, res, next) => {
     next(ex);
   }
 };
-///// Login API
+// Login API
 app.post("/api/auth/login", async (req, res, next) => {
   try {
     res.send(await authenticate(req.body));
@@ -56,7 +63,7 @@ app.get("/api/auth/me", isLoggedIn, async (req, res, next) => {
     next(ex);
   }
 });
-////////////////////////////
+// For Users
 
 app.get("/api/users", async (req, res, next) => {
   try {
@@ -65,6 +72,16 @@ app.get("/api/users", async (req, res, next) => {
     next(ex);
   }
 });
+
+app.post("/api/auth/register", async (req, res, next) => {
+  try {
+    res.send(await createUser(req.body));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+// For Favorites
 
 app.get("/api/users/:id/favorites", async (req, res, next) => {
   try {
@@ -87,14 +104,6 @@ app.post("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
   }
 });
 
-app.post("/api/auth/register", async (req, res, next) => {
-  try {
-    res.send(await createUser(req.body));
-  } catch (ex) {
-    next(ex);
-  }
-});
-
 app.delete(
   "/api/users/:user_id/favorites/:id",
   isLoggedIn,
@@ -108,6 +117,8 @@ app.delete(
   }
 );
 
+// For Products
+
 app.get("/api/products", async (req, res, next) => {
   try {
     res.send(await fetchProducts());
@@ -116,15 +127,32 @@ app.get("/api/products", async (req, res, next) => {
   }
 });
 
-////////////////////////////////////////////////////////////////////////////
+app.post("/api/admin/products", async (req, res, next) => {
+  try {
+    res.send(await createProduct(req.body));
+  } catch (ex) {
+    next(ex);
+  }
+});
 
-app.put("/api/products/:id", async (req, res, next) => {
+app.put("/api/admin/products/:id", async (req, res, next) => {
   try {
     res.send(await updateProduct({ id: req.params.id, ...req.body }));
   } catch (ex) {
     next(ex);
   }
 });
+
+app.delete("/api/admin/products/:id", async (req, res, next) => {
+  try {
+    await destroyProduct(req.params.id);
+    res.sendStatus(204);
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+// For Cart
 
 app.put("/api/cart/:id", async (req, res, next) => {
   try {
@@ -134,14 +162,48 @@ app.put("/api/cart/:id", async (req, res, next) => {
   }
 });
 
-app.delete("/api/products/:id", async (req, res, next) => {
+app.delete("/api/cart/:id", async (req, res, next) => {
   try {
-    await destroyProduct(req.params.id);
+    await removeFromCart(req.params.id);
     res.sendStatus(204);
   } catch (ex) {
     next(ex);
   }
 });
+
+app.post("/api/checkout", async (req, res, next) => {
+  try {
+    res.send(await checkout(req.body));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.post("/api/cart", async (req, res, next) => {
+  try {
+    res.send(await createCartItem(req.body));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get("/api/cart", async (req, res, next) => {
+  try {
+    res.send(await fetchCart(req.body.user_id));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get("/api/cart/total", async (req, res, next) => {
+  try {
+    res.send({ total: await fetchCartTotal(req.body.user_id) });
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+// For Category
 
 app.post("/api/categories", async (req, res, next) => {
   try {
@@ -159,8 +221,49 @@ app.get("/api/categories", async (req, res, next) => {
   }
 });
 
-////////////////////////////////////////////////////////////////////////////////////////////
+// For admin
 
+const isAdmin = async (req, res, next) => {
+  try {
+    const user = await findUserWithToken(req.headers.authorization);
+    if (!(await isAdmin(user.id))) {
+      throw new Error("Not authorized");
+    }
+    next();
+  } catch (ex) {
+    next(ex);
+  }
+};
+
+app.use("/api/admin", isAdmin);
+
+// For Orders
+
+app.get("/api/orders", async (req, res, next) => {
+  try {
+    res.send(await fetchOrders(req.body.user_id));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get("/api/orders/:id/items", async (req, res, next) => {
+  try {
+    res.send(await fetchOrderItems(req.params.id));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get("/api/orders/:id/total", async (req, res, next) => {
+  try {
+    res.send({ total: await fetchOrderTotal(req.params.id) });
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+// handle
 app.use((err, req, res, next) => {
   console.log(err);
   res
