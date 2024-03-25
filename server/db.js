@@ -289,10 +289,21 @@ const updateCart = async ({ id, user_id, product_id, quantity }) => {
 
 const fetchCart = async (user_id) => {
   const SQL = `
-    SELECT * FROM cart WHERE user_id = $1
+    SELECT c.*, p.* 
+    FROM cart c
+    JOIN products p ON p.id = c.product_id
+    WHERE c.user_id = $1
   `;
   const response = await client.query(SQL, [user_id]);
-  return response.rows;
+  return response.rows.map((row) => ({
+    ...row,
+    product: {
+      id: row.product_id,
+      name: row.name,
+      price: row.price,
+      // include other product properties here
+    },
+  }));
 };
 
 const fetchCartTotal = async (user_id) => {

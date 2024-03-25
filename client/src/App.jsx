@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import "./index.css";
 
 // Login component
@@ -73,9 +74,10 @@ const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
     <div className="cart">
       <h2>Cart</h2>
       {cart.map((item) =>
-        item.product ? ( // check if item.product is not undefined
+        item.product ? (
           <div key={item.id}>
             <p>{item.product.name}</p>
+            <p>Price: {item.product.price}</p>
             <button onClick={() => updateCart(item.id, item.quantity - 1)}>
               -
             </button>
@@ -214,6 +216,46 @@ function App() {
       setOrders([]);
     }
   }, [auth]);
+
+  //New AutoForm
+
+  const AuthForm = ({ action }) => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+
+    const submitForm = async (ev) => {
+      ev.preventDefault();
+      try {
+        await action({ username, password });
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    return (
+      <form onSubmit={submitForm}>
+        <input
+          value={username}
+          placeholder="username"
+          onChange={(ev) => setUsername(ev.target.value)}
+        />
+        <input
+          value={password}
+          placeholder="password"
+          onChange={(ev) => setPassword(ev.target.value)}
+        />
+        <button disabled={!username || !password}>
+          {action === login ? "Login" : "Register"}
+        </button>
+        {error && <div className="error">{error}</div>}
+      </form>
+    );
+  };
+
+  AuthForm.propTypes = {
+    action: PropTypes.func,
+  };
 
   // Internal Functions To Routes
   // Login
@@ -361,125 +403,120 @@ function App() {
     }
   };
 
+  //   return (
+  //     <>
+  //       {!auth.id ? (
+  //         <div className="auth-container">
+  //           <Login login={login} />
+  //           <Register register={register} />
+  //         </div>
+  //       ) : (
+  //         <>
+  //           <button onClick={logout}>Logout {auth.username}</button>
+  //           <Cart
+  //             cart={cart}
+  //             updateCart={updateCart}
+  //             checkout={checkout}
+  //             removeFromCart={removeFromCart}
+  //           />
+  //           <Orders orders={orders} />
+  //         </>
+  //       )}
+  //       <ul>
+  //         {products.map((product) => {
+  //           const isFavorite = favorites.find(
+  //             (favorite) => favorite.product_id === product.id
+  //           );
+  //           return (
+  //             <li key={product.id} className={isFavorite ? "favorite" : ""}>
+  //               {product.name}
+  //               {product.image}
+  //               {product.price}
+  //               {auth.id && isFavorite && (
+  //                 <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
+  //               )}
+  //               {auth.id && !isFavorite && (
+  //                 <button onClick={() => addFavorite(product.id)}>+</button>
+  //               )}
+  //               {auth.id && (
+  //                 <button onClick={() => addToCart(product.id)}>
+  //                   Add to Cart
+  //                 </button>
+  //               )}
+  //             </li>
+  //           );
+  //         })}
+  //       </ul>
+  //     </>
+  //   );
+  // }
   return (
-    <>
-      {!auth.id ? (
-        <div className="auth-container">
-          <Login login={login} />
-          <Register register={register} />
-        </div>
-      ) : (
-        <>
-          <button onClick={logout}>Logout {auth.username}</button>
+    <Router>
+      <div className="navbar">
+        <Link to="/">Home</Link>
+        {auth.id && <Link to="/cart">Cart</Link>}
+        {auth.id && <Link to="/orders">Orders</Link>}
+      </div>
+
+      <Switch>
+        <Route path="/cart">
           <Cart
             cart={cart}
             updateCart={updateCart}
             checkout={checkout}
             removeFromCart={removeFromCart}
           />
+        </Route>
+
+        <Route path="/orders">
           <Orders orders={orders} />
-        </>
-      )}
-      <ul>
-        {products.map((product) => {
-          const isFavorite = favorites.find(
-            (favorite) => favorite.product_id === product.id
-          );
-          return (
-            <li key={product.id} className={isFavorite ? "favorite" : ""}>
-              {product.name}
-              {product.image}
-              {product.price}
-              {auth.id && isFavorite && (
-                <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
-              )}
-              {auth.id && !isFavorite && (
-                <button onClick={() => addFavorite(product.id)}>+</button>
-              )}
-              {auth.id && (
-                <button onClick={() => addToCart(product.id)}>
-                  Add to Cart
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </>
+        </Route>
+
+        <Route path="/">
+          {!auth.id ? (
+            <div className="auth-container">
+              <AuthForm action={login} />
+              <AuthForm action={register} />
+            </div>
+          ) : (
+            <button onClick={logout}>Logout {auth.username}</button>
+          )}
+          <ul className="product-list">
+            {products.map((product) => {
+              const isFavorite = favorites.find(
+                (favorite) => favorite.product_id === product.id
+              );
+              return (
+                <li key={product.id} className={isFavorite ? "favorite" : ""}>
+                  <div className="product-details">
+                    <ul>Name: {product.name}</ul>
+                    <ul>{product.image}</ul>
+                    <ul>Price: ${product.price}</ul>
+                  </div>
+                  {auth.id && (
+                    <div className="product-actions">
+                      {isFavorite ? (
+                        <button onClick={() => removeFavorite(isFavorite.id)}>
+                          Remove from Favorites
+                        </button>
+                      ) : (
+                        <button onClick={() => addFavorite(product.id)}>
+                          Add to Favorites
+                        </button>
+                      )}
+                      <button onClick={() => addToCart(product.id)}>
+                        Add to Cart
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Route>
+      </Switch>
+    </Router>
   );
 }
 
-//   return (
-//     <>
-//       {!auth.id ? (
-//         <div className="auth-container">
-//           <Login login={login} />
-//           <Register register={register} />
-//         </div>
-//       ) : (
-//         <>
-//           <button onClick={logout}>Logout {auth.username}</button>
-//           <Cart cart={cart} updateCart={updateCart} checkout={checkout} />
-//           <Orders orders={orders} />
-//         </>
-//       )}
-//       <ul>
-//         {products.map((product) => {
-//           const isFavorite = favorites.find(
-//             (favorite) => favorite.product_id === product.id
-//           );
-//           return (
-//             <li key={product.id} className={isFavorite ? "favorite" : ""}>
-//               {product.name}
-//               {auth.id && isFavorite && (
-//                 <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
-//               )}
-//               {auth.id && !isFavorite && (
-//                 <button onClick={() => addFavorite(product.id)}>+</button>
-//               )}
-//               {auth.id && (
-//                 <button onClick={() => addToCart(product.id)}>
-//                   Add to Cart
-//                 </button>
-//               )}
-//             </li>
-//           );
-//         })}
-//       </ul>
-//     </>
-//   );
-// }
-
 export default App;
-
-// return (
-//   <>
-//     {!auth.id ? (
-//       <div className="auth-container">
-//         <Login login={login} />
-//         <Register register={register} />
-//       </div>
-//     ) : (
-//       <button onClick={logout}>Logout {auth.username}</button>
-//     )}
-//     <ul>
-//       {products.map((product) => {
-//         const isFavorite = favorites.find(
-//           (favorite) => favorite.product_id === product.id
-//         );
-//         return (
-//           <li key={product.id} className={isFavorite ? "favorite" : ""}>
-//             {product.name}
-//             {auth.id && isFavorite && (
-//               <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
-//             )}
-//             {auth.id && !isFavorite && (
-//               <button onClick={() => addFavorite(product.id)}>+</button>
-//             )}
-//           </li>
-//         );
-//       })}
-//     </ul>
-//   </>
-// );
-// }
