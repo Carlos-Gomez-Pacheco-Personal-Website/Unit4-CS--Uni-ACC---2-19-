@@ -69,7 +69,24 @@ Register.propTypes = {
 };
 
 const Cart = ({ cart, updateCart, checkout }) => {
-  // ... implement your Cart component here ...
+  return (
+    <div>
+      <h2>Cart</h2>
+      {cart.map((item) => (
+        <div key={item.id}>
+          <p>{item.product.name}</p>
+          <button onClick={() => updateCart(item.id, item.quantity - 1)}>
+            -
+          </button>
+          <span>{item.quantity}</span>
+          <button onClick={() => updateCart(item.id, item.quantity + 1)}>
+            +
+          </button>
+        </div>
+      ))}
+      <button onClick={checkout}>Checkout</button>
+    </div>
+  );
 };
 
 Cart.propTypes = {
@@ -79,7 +96,17 @@ Cart.propTypes = {
 };
 
 const Orders = ({ orders }) => {
-  // ... implement your Orders component here ...
+  return (
+    <div>
+      <h2>Orders</h2>
+      {orders.map((order) => (
+        <div key={order.id}>
+          <p>Order ID: {order.id}</p>
+          <p>Total: {order.total}</p>
+        </div>
+      ))}
+    </div>
+  );
 };
 
 Orders.propTypes = {
