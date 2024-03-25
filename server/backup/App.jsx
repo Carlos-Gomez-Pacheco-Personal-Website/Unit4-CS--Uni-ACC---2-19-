@@ -90,9 +90,8 @@ Register.propTypes = {
 // };
 
 const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
-  // add removeFromCart here
   return (
-    <div>
+    <div className="cart">
       <h2>Cart</h2>
       {cart.map((item) => (
         <div key={item.id}>
@@ -104,7 +103,7 @@ const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
           <button onClick={() => updateCart(item.id, item.quantity + 1)}>
             +
           </button>
-          <button onClick={() => removeFromCart(item.id)}>Remove</button>{" "}
+          <button onClick={() => removeFromCart(item.id)}>Remove</button>
         </div>
       ))}
       <button onClick={checkout}>Checkout</button>
@@ -116,11 +115,12 @@ Cart.propTypes = {
   cart: PropTypes.array,
   updateCart: PropTypes.func,
   checkout: PropTypes.func,
+  removeFromCart: PropTypes.func,
 };
 // Order component
 const Orders = ({ orders }) => {
   return (
-    <div>
+    <div className="orders">
       <h2>Orders</h2>
       {orders.map((order) => (
         <div key={order.id}>
@@ -389,7 +389,12 @@ function App() {
       ) : (
         <>
           <button onClick={logout}>Logout {auth.username}</button>
-          <Cart cart={cart} updateCart={updateCart} checkout={checkout} />
+          <Cart
+            cart={cart}
+            updateCart={updateCart}
+            checkout={checkout}
+            removeFromCart={removeFromCart}
+          />
           <Orders orders={orders} />
         </>
       )}
@@ -419,6 +424,47 @@ function App() {
     </>
   );
 }
+
+//   return (
+//     <>
+//       {!auth.id ? (
+//         <div className="auth-container">
+//           <Login login={login} />
+//           <Register register={register} />
+//         </div>
+//       ) : (
+//         <>
+//           <button onClick={logout}>Logout {auth.username}</button>
+//           <Cart cart={cart} updateCart={updateCart} checkout={checkout} />
+//           <Orders orders={orders} />
+//         </>
+//       )}
+//       <ul>
+//         {products.map((product) => {
+//           const isFavorite = favorites.find(
+//             (favorite) => favorite.product_id === product.id
+//           );
+//           return (
+//             <li key={product.id} className={isFavorite ? "favorite" : ""}>
+//               {product.name}
+//               {auth.id && isFavorite && (
+//                 <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
+//               )}
+//               {auth.id && !isFavorite && (
+//                 <button onClick={() => addFavorite(product.id)}>+</button>
+//               )}
+//               {auth.id && (
+//                 <button onClick={() => addToCart(product.id)}>
+//                   Add to Cart
+//                 </button>
+//               )}
+//             </li>
+//           );
+//         })}
+//       </ul>
+//     </>
+//   );
+// }
 
 export default App;
 
