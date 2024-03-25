@@ -173,9 +173,11 @@ app.delete("/api/cart/:id", async (req, res, next) => {
   }
 });
 
-app.post("/api/checkout", async (req, res, next) => {
+app.post("/api/users/:id/checkout", async (req, res, next) => {
   try {
-    res.send(await checkout(req.body));
+    const { id } = req.params;
+    const order = await checkout(id);
+    res.send(order);
   } catch (ex) {
     next(ex);
   }

@@ -67,27 +67,6 @@ const Register = ({ register }) => {
 Register.propTypes = {
   register: PropTypes.func,
 };
-// Cart component
-// const Cart = ({ cart, updateCart, checkout }) => {
-//   return (
-//     <div>
-//       <h2>Cart</h2>
-//       {cart.map((item) => (
-//         <div key={item.id}>
-//           <p>{item.product.name}</p>
-//           <button onClick={() => updateCart(item.id, item.quantity - 1)}>
-//             -
-//           </button>
-//           <span>{item.quantity}</span>
-//           <button onClick={() => updateCart(item.id, item.quantity + 1)}>
-//             +
-//           </button>
-//         </div>
-//       ))}
-//       <button onClick={checkout}>Checkout</button>
-//     </div>
-//   );
-// };
 
 const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
   return (
@@ -368,14 +347,15 @@ function App() {
     const response = await fetch(`/api/users/${auth.id}/checkout`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         authorization: window.localStorage.getItem("token"),
       },
     });
 
     const json = await response.json();
     if (response.ok) {
-      setOrders([...orders, json]);
       setCart([]);
+      setOrders([...orders, json]);
     } else {
       console.log(json);
     }

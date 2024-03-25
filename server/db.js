@@ -255,7 +255,7 @@ const removeFromCart = async ({ user_id, product_id }) => {
   await client.query(SQL, [user_id, product_id]);
 };
 
-const checkout = async ({ user_id }) => {
+const checkout = async (user_id) => {
   const SQL = `
     INSERT INTO orders(id, user_id, order_date) VALUES($1, $2, NOW()) RETURNING *
   `;
