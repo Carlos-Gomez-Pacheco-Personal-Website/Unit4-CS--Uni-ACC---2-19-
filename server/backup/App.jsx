@@ -67,8 +67,30 @@ const Register = ({ register }) => {
 Register.propTypes = {
   register: PropTypes.func,
 };
+// Cart component
+// const Cart = ({ cart, updateCart, checkout }) => {
+//   return (
+//     <div>
+//       <h2>Cart</h2>
+//       {cart.map((item) => (
+//         <div key={item.id}>
+//           <p>{item.product.name}</p>
+//           <button onClick={() => updateCart(item.id, item.quantity - 1)}>
+//             -
+//           </button>
+//           <span>{item.quantity}</span>
+//           <button onClick={() => updateCart(item.id, item.quantity + 1)}>
+//             +
+//           </button>
+//         </div>
+//       ))}
+//       <button onClick={checkout}>Checkout</button>
+//     </div>
+//   );
+// };
 
-const Cart = ({ cart, updateCart, checkout }) => {
+const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
+  // add removeFromCart here
   return (
     <div>
       <h2>Cart</h2>
@@ -82,6 +104,7 @@ const Cart = ({ cart, updateCart, checkout }) => {
           <button onClick={() => updateCart(item.id, item.quantity + 1)}>
             +
           </button>
+          <button onClick={() => removeFromCart(item.id)}>Remove</button>{" "}
         </div>
       ))}
       <button onClick={checkout}>Checkout</button>
@@ -94,7 +117,7 @@ Cart.propTypes = {
   updateCart: PropTypes.func,
   checkout: PropTypes.func,
 };
-
+// Order component
 const Orders = ({ orders }) => {
   return (
     <div>
