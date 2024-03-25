@@ -69,7 +69,7 @@ Register.propTypes = {
   register: PropTypes.func,
 };
 
-const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
+const Cart = ({ cart, products, updateCart, checkout, removeFromCart }) => {
   return (
     <div className="cart">
       <h2>Cart</h2>
@@ -96,9 +96,9 @@ const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
 
 Cart.propTypes = {
   cart: PropTypes.array,
-  updateCart: PropTypes.func,
   checkout: PropTypes.func,
-  removeFromCart: PropTypes.func,
+  removeFromCart: PropTypes.any,
+  updateCart: PropTypes.any,
 };
 // Order component
 const Orders = ({ orders }) => {
@@ -377,12 +377,13 @@ function App() {
       },
     });
 
-    const json = await response.json();
-    if (response.ok) {
-      setCart(cart.map((item) => (item.id === id ? json : item)));
-    } else {
-      console.log(json);
+    if (!response.ok) {
+      console.error(`Failed to update cart item with id ${id}`);
+      return;
     }
+
+    const json = await response.json();
+    setCart(cart.map((item) => (item.id === id ? json : item)));
   };
 
   const checkout = async () => {
