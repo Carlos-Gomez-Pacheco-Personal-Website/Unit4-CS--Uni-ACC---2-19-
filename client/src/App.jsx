@@ -1,24 +1,149 @@
-import { BrowserRouter as Router, Route } from "react-router-dom";
-import "./App.css";
+import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import "./index.css";
 
-// Normal imports
-import Navigation from "./components/Navigation";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import Products from "./components/Products";
-import ProductDetails from "./components/ProductDetails";
-import Cart from "./components/Cart";
-import Favorites from "./components/Favorites";
-import Checkout from "./components/Checkout";
-import Confirmation from "./components/Confirmation";
-import UserProfile from "./components/UserProfile";
-import AdminPanel from "./components/AdminPanel";
+// Login component
+const Login = ({ login }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const submitLogin = (ev) => {
+    ev.preventDefault();
+    login({ username, password });
+  };
+  return (
+    <form onSubmit={submitLogin}>
+      <input
+        value={username}
+        placeholder="username"
+        onChange={(ev) => setUsername(ev.target.value)}
+      />
+      <input
+        value={password}
+        placeholder="password"
+        onChange={(ev) => setPassword(ev.target.value)}
+      />
+      <button disabled={!username || !password}>Login</button>
+    </form>
+  );
+};
+
+Login.propTypes = {
+  login: PropTypes.func,
+};
+// Register Component
+const Register = ({ register }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const submitRegister = async (ev) => {
+    ev.preventDefault();
+    try {
+      await register({ username, password });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <form onSubmit={submitRegister}>
+      <input
+        value={username}
+        placeholder="username"
+        onChange={(ev) => setUsername(ev.target.value)}
+      />
+      <input
+        value={password}
+        placeholder="password"
+        onChange={(ev) => setPassword(ev.target.value)}
+      />
+      <button disabled={!username || !password}>Register</button>
+      {error && <div className="error">{error}</div>}
+    </form>
+  );
+};
+
+Register.propTypes = {
+  register: PropTypes.func,
+};
+// Cart component
+// const Cart = ({ cart, updateCart, checkout }) => {
+//   return (
+//     <div>
+//       <h2>Cart</h2>
+//       {cart.map((item) => (
+//         <div key={item.id}>
+//           <p>{item.product.name}</p>
+//           <button onClick={() => updateCart(item.id, item.quantity - 1)}>
+//             -
+//           </button>
+//           <span>{item.quantity}</span>
+//           <button onClick={() => updateCart(item.id, item.quantity + 1)}>
+//             +
+//           </button>
+//         </div>
+//       ))}
+//       <button onClick={checkout}>Checkout</button>
+//     </div>
+//   );
+// };
+
+const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
+  return (
+    <div className="cart">
+      <h2>Cart</h2>
+      {cart.map((item) =>
+        item.product ? ( // check if item.product is not undefined
+          <div key={item.id}>
+            <p>{item.product.name}</p>
+            <button onClick={() => updateCart(item.id, item.quantity - 1)}>
+              -
+            </button>
+            <span>{item.quantity}</span>
+            <button onClick={() => updateCart(item.id, item.quantity + 1)}>
+              +
+            </button>
+            <button onClick={() => removeFromCart(item.id)}>Remove</button>
+          </div>
+        ) : null
+      )}
+      <button onClick={checkout}>Checkout</button>
+    </div>
+  );
+};
+
+Cart.propTypes = {
+  cart: PropTypes.array,
+  updateCart: PropTypes.func,
+  checkout: PropTypes.func,
+  removeFromCart: PropTypes.func,
+};
+// Order component
+const Orders = ({ orders }) => {
+  return (
+    <div className="orders">
+      <h2>Orders</h2>
+      {orders.map((order) => (
+        <div key={order.id}>
+          <p>Order ID: {order.id}</p>
+          <p>Total: {order.total}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+Orders.propTypes = {
+  orders: PropTypes.array,
+};
 
 function App() {
   const [auth, setAuth] = useState({});
   const [products, setProducts] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     attemptLoginWithToken();
@@ -40,7 +165,7 @@ function App() {
       }
     }
   };
-
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       const response = await fetch("/api/products");
@@ -50,7 +175,7 @@ function App() {
 
     fetchProducts();
   }, []);
-
+  // Fetch favorites
   useEffect(() => {
     const fetchFavorites = async () => {
       const response = await fetch(`/api/users/${auth.id}/favorites`, {
@@ -70,7 +195,49 @@ function App() {
       setFavorites([]);
     }
   }, [auth]);
+  // Fetch Cart
+  useEffect(() => {
+    const fetchCart = async () => {
+      const response = await fetch(`/api/users/${auth.id}/cart`, {
+        headers: {
+          "Content-Type": "application/json",
+          authorization: window.localStorage.getItem("token"),
+        },
+      });
+      const json = await response.json();
+      if (response.ok) {
+        setCart(json);
+      }
+    };
+    if (auth.id) {
+      fetchCart();
+    } else {
+      setCart([]);
+    }
+  }, [auth]);
+  // Fetch Order
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const response = await fetch(`/api/users/${auth.id}/orders`, {
+        headers: {
+          "Content-Type": "application/json",
+          authorization: window.localStorage.getItem("token"),
+        },
+      });
+      const json = await response.json();
+      if (response.ok) {
+        setOrders(json);
+      }
+    };
+    if (auth.id) {
+      fetchOrders();
+    } else {
+      setOrders([]);
+    }
+  }, [auth]);
 
+  // Internal Functions To Routes
+  // Login
   const login = async (credentials) => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -129,7 +296,7 @@ function App() {
   };
 
   const register = async (credentials) => {
-    const response = await fetch("/api/users", {
+    const response = await fetch("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(credentials),
       headers: {
@@ -144,81 +311,195 @@ function App() {
       console.log(json);
     }
   };
+  // New Functions Cart and Checkout
 
   const addToCart = async (product_id) => {
-    if (!auth || !auth.id) {
-      alert("Please log in to add items to the cart.");
-      return;
-    }
-
     const response = await fetch(`/api/users/${auth.id}/cart`, {
       method: "POST",
+      body: JSON.stringify({ user_id: auth.id, product_id, quantity: 1 }), // add user_id and quantity
       headers: {
         "Content-Type": "application/json",
         authorization: window.localStorage.getItem("token"),
       },
-      body: JSON.stringify({ product_id }),
     });
 
     const json = await response.json();
     if (response.ok) {
-      alert("Product added to cart successfully!");
+      setCart([...cart, json]);
+    } else {
+      console.log(json);
+    }
+  };
+
+  const removeFromCart = async (id) => {
+    const response = await fetch(`/api/users/${auth.id}/cart/${id}`, {
+      method: "DELETE",
+      headers: {
+        authorization: window.localStorage.getItem("token"),
+      },
+    });
+
+    if (response.ok) {
+      setCart(cart.filter((item) => item.id !== id));
+    } else {
+      console.log();
+    }
+  };
+
+  const updateCart = async (id, quantity) => {
+    const response = await fetch(`/api/users/${auth.id}/cart/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ quantity }),
+      headers: {
+        "Content-Type": "application/json",
+        authorization: window.localStorage.getItem("token"),
+      },
+    });
+
+    const json = await response.json();
+    if (response.ok) {
+      setCart(cart.map((item) => (item.id === id ? json : item)));
+    } else {
+      console.log(json);
+    }
+  };
+
+  const checkout = async () => {
+    const response = await fetch(`/api/users/${auth.id}/checkout`, {
+      method: "POST",
+      headers: {
+        authorization: window.localStorage.getItem("token"),
+      },
+    });
+
+    const json = await response.json();
+    if (response.ok) {
+      setOrders([...orders, json]);
+      setCart([]);
     } else {
       console.log(json);
     }
   };
 
   return (
-    <Router>
-      <Navigation logout={logout} /> {/* Pass logout function as prop */}
-      <Route exact path="/" render={() => <Products products={products} />} />
-      <Route
-        exact
-        path="/products"
-        render={() => <Products products={products} />}
-      />
-      <Route
-        exact
-        path="/products/:id"
-        render={() => (
-          <ProductDetails
-            addToCart={addToCart}
-            addFavorite={addFavorite}
-            auth={auth}
+    <>
+      {!auth.id ? (
+        <div className="auth-container">
+          <Login login={login} />
+          <Register register={register} />
+        </div>
+      ) : (
+        <>
+          <button onClick={logout}>Logout {auth.username}</button>
+          <Cart
+            cart={cart}
+            updateCart={updateCart}
+            checkout={checkout}
+            removeFromCart={removeFromCart}
           />
-        )}
-      />
-      <Route exact path="/login" render={() => <Login login={login} />} />
-      <Route
-        exact
-        path="/register"
-        render={() => <Register register={register} />}
-      />
-      <Route
-        exact
-        path="/cart"
-        render={() => <Cart addToCart={addToCart} auth={auth} />}
-      />{" "}
-      {/* Pass addToCart function as prop */}
-      <Route
-        exact
-        path="/favorites"
-        render={() => (
-          <Favorites
-            addFavorite={addFavorite}
-            removeFavorite={removeFavorite}
-            addToCart={addToCart}
-            auth={auth}
-          />
-        )}
-      />{" "}
-      {/* Pass addToCart function as prop */}
-      <Route exact path="/checkout" component={Checkout} />
-      <Route exact path="/confirmation" component={Confirmation} />
-      <Route exact path="/profile" component={UserProfile} />
-      <Route exact path="/admin" component={AdminPanel} />
-    </Router>
+          <Orders orders={orders} />
+        </>
+      )}
+      <ul>
+        {products.map((product) => {
+          const isFavorite = favorites.find(
+            (favorite) => favorite.product_id === product.id
+          );
+          return (
+            <li key={product.id} className={isFavorite ? "favorite" : ""}>
+              {product.name}
+              {product.image}
+              {product.price}
+              {auth.id && isFavorite && (
+                <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
+              )}
+              {auth.id && !isFavorite && (
+                <button onClick={() => addFavorite(product.id)}>+</button>
+              )}
+              {auth.id && (
+                <button onClick={() => addToCart(product.id)}>
+                  Add to Cart
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 
+//   return (
+//     <>
+//       {!auth.id ? (
+//         <div className="auth-container">
+//           <Login login={login} />
+//           <Register register={register} />
+//         </div>
+//       ) : (
+//         <>
+//           <button onClick={logout}>Logout {auth.username}</button>
+//           <Cart cart={cart} updateCart={updateCart} checkout={checkout} />
+//           <Orders orders={orders} />
+//         </>
+//       )}
+//       <ul>
+//         {products.map((product) => {
+//           const isFavorite = favorites.find(
+//             (favorite) => favorite.product_id === product.id
+//           );
+//           return (
+//             <li key={product.id} className={isFavorite ? "favorite" : ""}>
+//               {product.name}
+//               {auth.id && isFavorite && (
+//                 <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
+//               )}
+//               {auth.id && !isFavorite && (
+//                 <button onClick={() => addFavorite(product.id)}>+</button>
+//               )}
+//               {auth.id && (
+//                 <button onClick={() => addToCart(product.id)}>
+//                   Add to Cart
+//                 </button>
+//               )}
+//             </li>
+//           );
+//         })}
+//       </ul>
+//     </>
+//   );
+// }
+
 export default App;
+
+// return (
+//   <>
+//     {!auth.id ? (
+//       <div className="auth-container">
+//         <Login login={login} />
+//         <Register register={register} />
+//       </div>
+//     ) : (
+//       <button onClick={logout}>Logout {auth.username}</button>
+//     )}
+//     <ul>
+//       {products.map((product) => {
+//         const isFavorite = favorites.find(
+//           (favorite) => favorite.product_id === product.id
+//         );
+//         return (
+//           <li key={product.id} className={isFavorite ? "favorite" : ""}>
+//             {product.name}
+//             {auth.id && isFavorite && (
+//               <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
+//             )}
+//             {auth.id && !isFavorite && (
+//               <button onClick={() => addFavorite(product.id)}>+</button>
+//             )}
+//           </li>
+//         );
+//       })}
+//     </ul>
+//   </>
+// );
+// }

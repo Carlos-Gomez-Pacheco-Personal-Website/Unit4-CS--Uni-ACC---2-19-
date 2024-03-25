@@ -4,24 +4,27 @@ const {
   createUser,
   createProduct,
   createCategory,
-  createCartItem,
-  createFavorite,
-  deleteUser,
-  deleteProduct,
-  deleteCategory,
-  deleteCartItem,
-  deleteFavorite,
-  updateUser,
+  fetchCategories,
+  addToCart,
+  removeFromCart,
+  checkout,
   updateProduct,
-  updateCategory,
-  updateCartItem,
-  updateFavorite,
-  authenticate,
-  authMiddleware,
-  findUserByToken,
+  destroyProduct,
+  updateCart,
+  isAdmin2,
+  createCartItem,
+  fetchCart,
+  fetchCartTotal,
+  fetchOrders,
+  fetchOrderItems,
+  fetchOrderTotal,
   fetchUsers,
   fetchProducts,
   fetchFavorites,
+  createFavorite,
+  destroyFavorite,
+  authenticate,
+  findUserWithToken,
 } = require("./db");
 
 const express = require("express");
@@ -38,59 +41,16 @@ app.use(
   express.static(path.join(__dirname, "../client/dist/assets"))
 );
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 const isLoggedIn = async (req, res, next) => {
   try {
-    const user = await findUserByToken(req.headers.authorization);
-    if (user) {
-      req.user = user;
-      next();
-    } else {
-      res.status(401).send("Unauthorized");
-    }
-  } catch (error) {
-    next(error);
+    req.user = await findUserWithToken(req.headers.authorization);
+    next();
+  } catch (ex) {
+    next(ex);
   }
 };
-
-const isAdmin = async (req, res, next) => {
-  try {
-    // Assuming 'findUserByToken' returns the user object with a role or isAdmin property
-    const user = await findUserByToken(req.headers.authorization);
-
-    if (user && user.isAdmin) {
-      // or user.role === 'admin'
-      next(); // User is an admin, proceed to the next middleware
-    } else {
-      res.status(403).send("Access denied. Admins only."); // User is not an admin
-    }
-  } catch (error) {
-    next(error); // Pass any errors to the error handling middleware
-  }
-};
-
-// Apply the 'authMiddleware' to all routes that require authentication
-app.use("/api", authMiddleware);
-// Authentication middleware to verify if the user is logged in
-// const authMiddleware = async (req, res, next) => {
-//   try {
-//     const token = req.headers.authorization.split(" ")[1]; // Bearer <token>
-//     const user = await findUserByToken(token);
-//     if (!user) {
-//       return res.status(401).send("Unauthorized");
-//     }
-//     req.user = user; // Add user to the request object
-//     next();
-//   } catch (error) {
-//     res.status(401).send("Unauthorized");
-//   }
-// };
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Check if we need this to handle auth by me or not!
-FIXME: app.post("/api/auth/login", async (req, res, next) => {
+// Login API
+app.post("/api/auth/login", async (req, res, next) => {
   try {
     res.send(await authenticate(req.body));
   } catch (ex) {
@@ -100,16 +60,13 @@ FIXME: app.post("/api/auth/login", async (req, res, next) => {
 
 app.get("/api/auth/me", isLoggedIn, async (req, res, next) => {
   try {
-    res.send(await findUserByToken(req.headers.authorization));
+    res.send(await findUserWithToken(req.headers.authorization));
   } catch (ex) {
     next(ex);
   }
 });
-// Check if we need this to handle auth by me or not!
+// For Users
 
-///////////////////////////////////////////////////////////////////////////////////
-
-// User Routes
 app.get("/api/users", async (req, res, next) => {
   try {
     res.send(await fetchUsers());
@@ -117,34 +74,53 @@ app.get("/api/users", async (req, res, next) => {
     next(ex);
   }
 });
-app.post("/api/users", async (req, res, next) => {
+
+app.post("/api/auth/register", async (req, res, next) => {
   try {
-    const user = await createUser(req.body);
-    res.status(201).send(user);
-  } catch (error) {
-    next(error);
+    res.send(await createUser(req.body));
+  } catch (ex) {
+    next(ex);
   }
 });
 
-app.put("/api/users/:id", isLoggedIn, async (req, res, next) => {
+// For Favorites
+
+app.get("/api/users/:id/favorites", async (req, res, next) => {
   try {
-    const user = await updateUser(req.params.id, req.body);
-    res.send(user);
-  } catch (error) {
-    next(error);
+    res.send(await fetchFavorites(req.params.id));
+  } catch (ex) {
+    next(ex);
   }
 });
 
-app.delete("/api/users/:id", isLoggedIn, async (req, res, next) => {
+app.post("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
   try {
-    await deleteUser(req.params.id);
-    res.status(204).send();
-  } catch (error) {
-    next(error);
+    res.status(201).send(
+      await createFavorite({
+        user_id: req.params.id,
+        product_id: req.body.product_id,
+      })
+    );
+  } catch (ex) {
+    next(ex);
   }
 });
 
-// Product Routes
+app.delete(
+  "/api/users/:user_id/favorites/:id",
+  isLoggedIn,
+  async (req, res, next) => {
+    try {
+      await destroyFavorite({ user_id: req.params.user_id, id: req.params.id });
+      res.sendStatus(204);
+    } catch (ex) {
+      next(ex);
+    }
+  }
+);
+
+// For Products
+
 app.get("/api/products", async (req, res, next) => {
   try {
     res.send(await fetchProducts());
@@ -153,154 +129,172 @@ app.get("/api/products", async (req, res, next) => {
   }
 });
 
-app.post("/api/products", isAdmin, async (req, res, next) => {
+app.post("/api/admin/products", async (req, res, next) => {
   try {
-    const product = await createProduct(req.body);
-    res.status(201).send(product);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.put("/api/products/:id", isAdmin, async (req, res, next) => {
-  try {
-    const product = await updateProduct(req.params.id, req.body);
-    res.send(product);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.delete("/api/products/:id", isAdmin, async (req, res, next) => {
-  try {
-    await deleteProduct(req.params.id);
-    res.status(204).send();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Category Routes
-app.get("/api/categories", isAdmin, async (req, res, next) => {
-  try {
-    const SQL = `SELECT * FROM categories`;
-    const response = await client.query(SQL);
-    res.send(response.rows);
-  } catch (error) {
-    next(error);
-  }
-});
-app.post("/api/categories", isAdmin, async (req, res, next) => {
-  try {
-    const category = await createCategory(req.body);
-    res.status(201).send(category);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.put("/api/categories/:id", isAdmin, async (req, res, next) => {
-  try {
-    const category = await updateCategory(req.params.id, req.body);
-    res.send(category);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.delete("/api/categories/:id", isAdmin, async (req, res, next) => {
-  try {
-    await deleteCategory(req.params.id);
-    res.status(204).send();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Cart Item Routes
-app.get("/api/cart-items", isLoggedIn, async (req, res, next) => {
-  try {
-    const SQL = `SELECT * FROM cart_items`;
-    const response = await client.query(SQL);
-    res.send(response.rows);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/api/cart-items", isLoggedIn, async (req, res, next) => {
-  try {
-    const cartItem = await createCartItem(req.body);
-    res.status(201).send(cartItem);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.put("/api/cart-items/:id", isLoggedIn, async (req, res, next) => {
-  try {
-    const cartItem = await updateCartItem(req.params.id, req.body);
-    res.send(cartItem);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.delete("/api/cart-items/:id", isLoggedIn, async (req, res, next) => {
-  try {
-    await deleteCartItem(req.params.id);
-    res.status(204).send();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Favorite Routes
-app.get("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
-  try {
-    res.send(await fetchFavorites(req.params.id));
+    res.send(await createProduct(req.body));
   } catch (ex) {
     next(ex);
   }
 });
-app.post("/api/favorites", isLoggedIn, async (req, res, next) => {
+
+app.put("/api/admin/products/:id", async (req, res, next) => {
   try {
-    const favorite = await createFavorite(req.body);
-    res.status(201).send(favorite);
-  } catch (error) {
-    next(error);
+    res.send(await updateProduct({ id: req.params.id, ...req.body }));
+  } catch (ex) {
+    next(ex);
   }
 });
 
-app.delete("/api/favorites/:id", isLoggedIn, async (req, res, next) => {
+app.delete("/api/admin/products/:id", async (req, res, next) => {
   try {
-    await deleteFavorite(req.params.id);
-    res.status(204).send();
-  } catch (error) {
-    next(error);
+    await destroyProduct(req.params.id);
+    res.sendStatus(204);
+  } catch (ex) {
+    next(ex);
   }
 });
 
-app.put("/api/favorites/:id", isLoggedIn, async (req, res, next) => {
+// For Cart
+
+app.put("/api/cart/:id", async (req, res, next) => {
   try {
-    const updatedFavorite = await updateFavorite(req.params.id, req.body);
-    res.status(200).json(updatedFavorite);
-  } catch (error) {
-    next(error);
+    res.send(await updateCart({ id: req.params.id, ...req.body }));
+  } catch (ex) {
+    next(ex);
   }
 });
 
-// Authentication Routes
-app.post("/api/auth/login", async (req, res, next) => {
+app.delete("/api/cart/:id", async (req, res, next) => {
   try {
-    const user = await authenticate(req.body);
-    res.send(user);
-  } catch (error) {
-    next(error);
+    await removeFromCart(req.params.id);
+    res.sendStatus(204);
+  } catch (ex) {
+    next(ex);
   }
 });
 
-////////////////////////////////////////////////////////////////////////////////////////
+app.post("/api/checkout", async (req, res, next) => {
+  try {
+    res.send(await checkout(req.body));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.post("/api/cart", async (req, res, next) => {
+  try {
+    const { user_id, product_id, quantity } = req.body; // destructure the properties here
+    res.send(await createCartItem({ user_id, product_id, quantity }));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+// app.get("/api/cart", async (req, res, next) => {
+//   try {
+//     res.send(await fetchCart(req.body.user_id));
+//   } catch (ex) {
+//     next(ex);
+//   }
+// });
+app.get("/api/users/:id/cart", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const cart = await fetchCart(id);
+    res.send(cart);
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get("/api/cart/total", async (req, res, next) => {
+  try {
+    res.send({ total: await fetchCartTotal(req.body.user_id) });
+  } catch (ex) {
+    next(ex);
+  }
+});
+app.post("/api/users/:id/cart", async (req, res, next) => {
+  try {
+    const { id: user_id } = req.params; // rename id to user_id for clarity
+    const { product_id, quantity } = req.body;
+    const item = await addToCart({ user_id, product_id, quantity }); // pass an object here
+    res.send(item);
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+// For Category
+
+app.post("/api/categories", async (req, res, next) => {
+  try {
+    res.send(await createCategory(req.body));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get("/api/categories", async (req, res, next) => {
+  try {
+    res.send(await fetchCategories());
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+// For admin
+
+const isAdmin = async (req, res, next) => {
+  try {
+    const user = await findUserWithToken(req.headers.authorization);
+    if (!(await isAdmin2(user.id))) {
+      throw new Error("Not authorized");
+    }
+    next();
+  } catch (ex) {
+    next(ex);
+  }
+};
+
+app.use("/api/admin", isAdmin);
+
+// For Orders
+
+// app.get("/api/orders", async (req, res, next) => {
+//   try {
+//     res.send(await fetchOrders(req.body.user_id));
+//   } catch (ex) {
+//     next(ex);
+//   }
+// });
+app.get("/api/users/:id/orders", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const orders = await fetchOrders(id);
+    res.send(orders);
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get("/api/orders/:id/items", async (req, res, next) => {
+  try {
+    res.send(await fetchOrderItems(req.params.id));
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get("/api/orders/:id/total", async (req, res, next) => {
+  try {
+    res.send({ total: await fetchOrderTotal(req.params.id) });
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+// handle
 app.use((err, req, res, next) => {
   console.log(err);
   res
@@ -312,187 +306,65 @@ const init = async () => {
   const port = process.env.PORT || 3000;
   await client.connect();
   console.log("connected to database");
+
   await createTables();
   console.log("tables created");
-  // First, create categories to ensure we have the category IDs
-  const [electronicsCategory, clothingCategory] = await Promise.all([
-    createCategory({
-      name: "Electronics",
-      type: "Electronics",
-      description: "All electronic items",
-    }),
-    createCategory({
-      name: "Clothing",
-      type: "Clothing",
-      description: "Fashionable apparel and accessories",
-    }),
+
+  // Create categories
+  const [electronics, clothing, home] = await Promise.all([
+    createCategory({ name: "Electronics" }),
+    createCategory({ name: "Clothing" }),
+    createCategory({ name: "Home" }),
   ]);
 
-  // Now that we have category IDs, we can create products
-  const [laptopProduct, tshirtProduct] = await Promise.all([
+  // Create products
+  const [laptop, tshirt, chair] = await Promise.all([
     createProduct({
       name: "Laptop",
-      date: new Date(),
-      description: "High-performance laptop",
-      image:
-        "https://www.bhphotovideo.com/images/images2500x2500/asus_g513qr_es96_15_6_republic_of_gamers_1616909.jpg",
-      cost: 999.99,
-      category_id: electronicsCategory.id,
+      price: 1000,
+      quantity: 10,
+      description: "A high quality laptop",
+      image: "laptop.jpg",
+      category_id: electronics.id,
     }),
     createProduct({
       name: "T-Shirt",
-      date: new Date(),
-      description: "Cotton unisex t-shirt",
-      image:
-        "https://th.bing.com/th/id/OIP.DSjZPk9uy01_f2ox4Q5QPgHaHa?rs=1&pid=ImgDetMain",
-      cost: 19.99,
-      category_id: clothingCategory.id,
+      price: 20,
+      quantity: 50,
+      description: "A comfortable t-shirt",
+      image: "tshirt.jpg",
+      category_id: clothing.id,
+    }),
+    createProduct({
+      name: "Chair",
+      price: 70,
+      quantity: 20,
+      description: "A wooden chair",
+      image: "chair.jpg",
+      category_id: home.id,
     }),
   ]);
 
   // Create users
-  const [adminUser, regularUser] = await Promise.all([
-    createUser({
-      username: "admincarlos",
-      password: "admin123456",
-      isAdmin: true,
-    }),
-    createUser({
-      username: "carlos",
-      password: "123456",
-      isAdmin: false,
-    }),
+  const [moe, lucy, admin] = await Promise.all([
+    createUser({ username: "moe", password: "123456", is_admin: false }),
+    createUser({ username: "lucy", password: "123457", is_admin: false }),
+    createUser({ username: "admin", password: "admin123", is_admin: true }),
   ]);
 
-  // Now that we have user IDs, we can create cart items and favorites
-  const [cartItem1, favorite1] = await Promise.all([
-    createCartItem({
-      user_id: regularUser.id,
-      product_id: laptopProduct.id,
-      quantity: 1,
-    }),
-    createFavorite({ user_id: regularUser.id, product_id: tshirtProduct.id }),
+  // Add products to cart
+  await Promise.all([
+    addToCart({ user_id: moe.id, product_id: laptop.id, quantity: 1 }),
+    addToCart({ user_id: lucy.id, product_id: tshirt.id, quantity: 2 }),
   ]);
 
-  console.log("Initialization completed");
+  // Add products to favorites
+  await Promise.all([
+    createFavorite({ user_id: moe.id, product_id: chair.id }),
+    createFavorite({ user_id: lucy.id, product_id: laptop.id }),
+  ]);
 
   app.listen(port, () => console.log(`listening on port ${port}`));
 };
 
 init();
-
-// // Users
-// app.post("/users", async (req, res) => {
-//   const { username, password } = req.body;
-//   const user = await db.createUser({ username, password });
-//   init.users.push(user);
-//   res.status(201).json(user);
-// });
-
-// app.get("/users", async (req, res) => {
-//   const users = await db.fetchUsers();
-//   res.status(200).json(users);
-// });
-
-// app.delete("/users/:id", async (req, res) => {
-//   const { id } = req.params;
-//   await db.deleteUser(id);
-//   const updatedUsers = await db.fetchUsers();
-//   init.users = updatedUsers;
-//   res.status(200).json(updatedUsers);
-// });
-
-// app.put("/users/:id", async (req, res) => {
-//   const { id } = req.params;
-//   const { username, password } = req.body;
-//   const updatedUser = await db.updateUser(id, { username, password });
-//   const updatedUsers = await db.fetchUsers();
-//   init.users = updatedUsers;
-//   res.status(200).json(updatedUsers);
-// }); // Products
-// app.post("/products", async (req, res) => {
-//   const { name, date, description, image, category_id } = req.body;
-//   const product = await db.createProduct({
-//     name,
-//     date,
-//     description,
-//     image,
-//     category_id,
-//   });
-//   init.products.push(product);
-//   res.status(201).json(product);
-// });
-
-// app.get("/products", async (req, res) => {
-//   const products = await db.fetchProducts();
-//   res.status(200).json(products);
-// });
-
-// // Categories
-// app.post("/categories", async (req, res) => {
-//   const { name, type, description } = req.body;
-//   const category = await db.createCategory({ name, type, description });
-//   init.categories.push(category);
-//   res.status(201).json(category);
-// });
-
-// app.get("/categories", async (req, res) => {
-//   const categories = await db.fetchCategories();
-//   res.status(200).json(categories);
-// });
-
-// // Cart Items
-// app.post("/cart-items", async (req, res) => {
-//   const { user_id, product_id, quantity } = req.body;
-//   const cartItem = await db.createCartItem({ user_id, product_id, quantity });
-//   init.cartItems.push(cartItem);
-//   res.status(201).json(cartItem);
-// });
-
-// app.get("/cart-items", async (req, res) => {
-//   const cartItems = await db.fetchCartItems();
-//   res.status(200).json(cartItems);
-// });
-
-// // Favorites
-// app.post("/favorites", async (req, res) => {
-//   const { user_id, product_id } = req.body;
-//   const favorite = await db.createFavorite({ user_id, product_id });
-//   init.favorites.push(favorite);
-//   res.status(201).json(favorite);
-// });
-
-// app.get("/favorites", async (req, res) => {
-//   const favorite = await db.fetchFavorites(user_id);
-//   res.status(200).json(favorite);
-// });
-
-// // Cart Items
-// app.post("/cart-items", async (req, res) => {
-//   const { user_id, product_id, quantity } = req.body;
-//   const cartItem = await db.createCartItem({ user_id, product_id, quantity });
-//   const updatedCartItems = await db.fetchCartItems();
-//   res.status(201).json(cartItem);
-// });
-
-// app.delete("/cart-items/:id", async (req, res) => {
-//   const { id } = req.params;
-//   await db.deleteCartItem(id);
-//   const updatedCartItems = await db.fetchCartItems();
-//   res.status(200).json(updatedCartItems);
-// });
-
-// // Favorites
-// app.post("/favorites", async (req, res) => {
-//   const { user_id, product_id } = req.body;
-//   const favorite = await db.createFavorite({ user_id, product_id });
-//   const updatedFavorites = await db.fetchFavorites();
-//   res.status(201).json(favorite);
-// });
-
-// app.delete("/favorites/:id", async (req, res) => {
-//   const { id } = req.params;
-//   await db.deleteFavorite(id);
-//   const updatedFavorites = await db.fetchFavorites();
-//   res.status(200).json(updatedFavorites);
-// });
