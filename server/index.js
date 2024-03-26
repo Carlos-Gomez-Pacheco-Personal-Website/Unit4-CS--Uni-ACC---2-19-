@@ -335,7 +335,8 @@ const init = async () => {
       price: 20,
       quantity: 50,
       description: "A comfortable t-shirt",
-      image: "tshirt.jpg",
+      image:
+        "https://i.etsystatic.com/12860790/r/il/18662e/2727406508/il_fullxfull.2727406508_nb9g.jpg",
       category_id: clothing.id,
     }),
     createProduct({
@@ -343,7 +344,8 @@ const init = async () => {
       price: 70,
       quantity: 20,
       description: "A wooden chair",
-      image: "chair.jpg",
+      image:
+        "https://luxurylaunches.com/wp-content/uploads/2021/01/Razer-Gaming-Chair.jpg",
       category_id: home.id,
     }),
   ]);
