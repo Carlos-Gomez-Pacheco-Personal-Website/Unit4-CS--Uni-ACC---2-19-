@@ -68,8 +68,8 @@ const Register = ({ register }) => {
 Register.propTypes = {
   register: PropTypes.func,
 };
-
-const Cart = ({ cart, products, updateCart, checkout, removeFromCart }) => {
+// Cart Component
+const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
   return (
     <div className="cart">
       <h2>Cart</h2>
@@ -96,9 +96,9 @@ const Cart = ({ cart, products, updateCart, checkout, removeFromCart }) => {
 
 Cart.propTypes = {
   cart: PropTypes.array,
+  updateCart: PropTypes.func,
   checkout: PropTypes.func,
-  removeFromCart: PropTypes.any,
-  updateCart: PropTypes.any,
+  removeFromCart: PropTypes.func,
 };
 // Order component
 const Orders = ({ orders }) => {
@@ -403,54 +403,6 @@ function App() {
       console.log(json);
     }
   };
-
-  //   return (
-  //     <>
-  //       {!auth.id ? (
-  //         <div className="auth-container">
-  //           <Login login={login} />
-  //           <Register register={register} />
-  //         </div>
-  //       ) : (
-  //         <>
-  //           <button onClick={logout}>Logout {auth.username}</button>
-  //           <Cart
-  //             cart={cart}
-  //             updateCart={updateCart}
-  //             checkout={checkout}
-  //             removeFromCart={removeFromCart}
-  //           />
-  //           <Orders orders={orders} />
-  //         </>
-  //       )}
-  //       <ul>
-  //         {products.map((product) => {
-  //           const isFavorite = favorites.find(
-  //             (favorite) => favorite.product_id === product.id
-  //           );
-  //           return (
-  //             <li key={product.id} className={isFavorite ? "favorite" : ""}>
-  //               {product.name}
-  //               {product.image}
-  //               {product.price}
-  //               {auth.id && isFavorite && (
-  //                 <button onClick={() => removeFavorite(isFavorite.id)}>-</button>
-  //               )}
-  //               {auth.id && !isFavorite && (
-  //                 <button onClick={() => addFavorite(product.id)}>+</button>
-  //               )}
-  //               {auth.id && (
-  //                 <button onClick={() => addToCart(product.id)}>
-  //                   Add to Cart
-  //                 </button>
-  //               )}
-  //             </li>
-  //           );
-  //         })}
-  //       </ul>
-  //     </>
-  //   );
-  // }
   return (
     <Router>
       <div className="navbar">
@@ -463,6 +415,7 @@ function App() {
         <Route path="/cart">
           <Cart
             cart={cart}
+            products={products}
             updateCart={updateCart}
             checkout={checkout}
             removeFromCart={removeFromCart}
