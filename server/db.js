@@ -78,16 +78,22 @@ const createUser = async ({ username, password }) => {
     username,
     await bcrypt.hash(password, 5),
   ]);
-  return response.rows[0];
+  return { id: response.rows[0].id, username: response.rows[0].username };
 };
 
 const authenticate = async ({ username, password }) => {
+  if (!username || !password) {
+    const error = Error("not authorized, missing username or password");
+    error.status = 401;
+    throw error;
+  }
   const SQL = `
     SELECT id, password, username 
-    FROM users 
+    FROM users
     WHERE username=$1;
   `;
   const response = await client.query(SQL, [username]);
+  console.log(response.rows);
   if (
     (!response.rows.length ||
       (await bcrypt.compare(password, response.rows[0].password))) === false
@@ -97,7 +103,13 @@ const authenticate = async ({ username, password }) => {
     throw error;
   }
   const token = await jwt.sign({ id: response.rows[0].id }, JWT);
-  return { token: token };
+  return {
+    token: token,
+    user: {
+      id: response.rows[0].id,
+      username: response.rows[0].username,
+    },
+  };
 };
 
 const findUserWithToken = async (token) => {
@@ -129,6 +141,7 @@ const fetchUsers = async () => {
   const response = await client.query(SQL);
   return response.rows;
 };
+
 // Favorite
 const fetchFavorites = async (user_id) => {
   const SQL = `
@@ -286,6 +299,7 @@ const updateCart = async ({ id, user_id, product_id, quantity }) => {
   const response = await client.query(SQL, [id, user_id, product_id, quantity]);
   return response.rows[0];
 };
+// INSERT INTO cartItems (cart_id, product_id, quantity) VALUES ($1, $2, $3) ON CONFLICT (cart_id, product_id) DO UPDATE SET quantity = $3 RETURNING *
 
 const fetchCart = async (user_id) => {
   const SQL = `

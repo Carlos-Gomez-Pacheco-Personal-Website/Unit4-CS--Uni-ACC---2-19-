@@ -167,7 +167,7 @@ app.put("/api/cart/:id", async (req, res, next) => {
 app.delete("/api/cart/:id", async (req, res, next) => {
   try {
     await removeFromCart(req.params.id);
-    res.sendStatus(204);
+    res.status(200).json({ message: "Item removed from cart" });
   } catch (ex) {
     next(ex);
   }
@@ -326,7 +326,8 @@ const init = async () => {
       price: 1000,
       quantity: 10,
       description: "A high quality laptop",
-      image: "laptop.jpg",
+      image:
+        "https://th.bing.com/th/id/R.6280cf1dc3a15f0473365adfc5c65415?rik=dgPgRpkmpHNFqA&pid=ImgRaw&r=0",
       category_id: electronics.id,
     }),
     createProduct({

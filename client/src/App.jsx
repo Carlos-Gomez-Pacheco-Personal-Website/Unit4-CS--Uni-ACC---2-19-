@@ -69,7 +69,32 @@ Register.propTypes = {
   register: PropTypes.func,
 };
 // Cart Component
-const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
+const Cart = ({
+  cart,
+  auth,
+  setCart,
+  updateCart,
+  checkout,
+  removeFromCart,
+}) => {
+  // Fetch cart items when the component mounts
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      const response = await fetch(`/api/users/${auth.id}/cart`, {
+        headers: {
+          "Content-Type": "application/json",
+          authorization: window.localStorage.getItem("token"),
+        },
+      });
+      const json = await response.json();
+      if (response.ok) {
+        setCart(json);
+      }
+    };
+
+    fetchCartItems();
+  }, [auth.id, setCart]);
+
   return (
     <div className="cart">
       <h2>Cart</h2>
@@ -96,6 +121,8 @@ const Cart = ({ cart, updateCart, checkout, removeFromCart }) => {
 
 Cart.propTypes = {
   cart: PropTypes.array,
+  auth: PropTypes.object.isRequired,
+  setCart: PropTypes.func.isRequired,
   updateCart: PropTypes.func,
   checkout: PropTypes.func,
   removeFromCart: PropTypes.func,
@@ -352,7 +379,38 @@ function App() {
     }
   };
 
+  // const addToCart = async (product_id) => {
+  //   // Check if the product is already in the cart
+  //   const item = cart.find((item) => item.product.id === product_id);
+
+  //   if (item) {
+  //     // If the product is already in the cart, update the quantity
+  //     await updateCart(item.id, item.quantity + 1);
+  //   } else {
+  //     // If the product is not in the cart, add it
+  //     const response = await fetch(`/api/users/${auth.id}/cart`, {
+  //       method: "POST",
+  //       body: JSON.stringify({ user_id: auth.id, product_id, quantity: 1 }),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         authorization: window.localStorage.getItem("token"),
+  //       },
+  //     });
+
+  //     const json = await response.json();
+  //     if (response.ok) {
+  //       setCart([...cart, json]);
+  //     } else {
+  //       console.log(json);
+  //     }
+  //   }
+  // };
+
   const removeFromCart = async (id) => {
+    // Optimistically update the cart state
+    setCart(cart.filter((item) => item.id !== id));
+
+    // Then, send the network request to remove the cart item from the server
     const response = await fetch(`/api/users/${auth.id}/cart/${id}`, {
       method: "DELETE",
       headers: {
@@ -360,14 +418,20 @@ function App() {
       },
     });
 
-    if (response.ok) {
-      setCart(cart.filter((item) => item.id !== id));
-    } else {
-      console.log();
+    // If the network request fails, revert the cart state
+    if (!response.ok) {
+      console.error(`Failed to remove cart item with id ${id}`);
+      setCart(cart); // Revert the cart state
     }
   };
 
   const updateCart = async (id, quantity) => {
+    // Optimistically update the cart state
+    setCart(
+      cart.map((item) => (item.id === id ? { ...item, quantity } : item))
+    );
+
+    // Then, send the network request to update the cart item on the server
     const response = await fetch(`/api/users/${auth.id}/cart/${id}`, {
       method: "PUT",
       body: JSON.stringify({ quantity }),
@@ -377,13 +441,11 @@ function App() {
       },
     });
 
+    // If the network request fails, revert the cart state
     if (!response.ok) {
       console.error(`Failed to update cart item with id ${id}`);
-      return;
+      setCart(cart); // Revert the cart state
     }
-
-    const json = await response.json();
-    setCart(cart.map((item) => (item.id === id ? json : item)));
   };
 
   const checkout = async () => {
@@ -415,7 +477,8 @@ function App() {
         <Route path="/cart">
           <Cart
             cart={cart}
-            products={products}
+            auth={auth}
+            setCart={setCart} // pass setCart as a prop
             updateCart={updateCart}
             checkout={checkout}
             removeFromCart={removeFromCart}
@@ -443,9 +506,15 @@ function App() {
               return (
                 <li key={product.id} className={isFavorite ? "favorite" : ""}>
                   <div className="product-details">
-                    <ul>Name: {product.name}</ul>
-                    <ul>{product.image}</ul>
-                    <ul>Price: ${product.price}</ul>
+                    <div className="product-div">
+                      <p>Name: {product.name}</p>
+                      <p>Price: ${product.price}</p>
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="img-class"
+                      />
+                    </div>
                   </div>
                   {auth.id && (
                     <div className="product-actions">
